@@ -1,28 +1,36 @@
 <?php
 include 'seguridad.php';
-if ($_SESSION['rol'] !== 'admin') {
-    header('Location: panel.php');
+include 'conexion.php';
+
+if (!isset($_GET['id'])) {
+    header('Location: usuarios.php');
     exit;
 }
-include 'conexion.php';
+
+$id = intval($_GET['id']);
+$result = mysqli_query($conexion, "SELECT * FROM usuarios WHERE id = $id");
+$usuarioData = mysqli_fetch_assoc($result);
+
+if (!$usuarioData) {
+    header('Location: usuarios.php');
+    exit;
+}
 
 $mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $rol = ($_POST['rol'] === 'admin') ? 'admin' : 'consulta';
 
-    $existe = mysqli_query($conexion, "SELECT id FROM usuarios WHERE usuario = '$usuario'");
-    if (mysqli_num_rows($existe) > 0) {
-        $mensaje = 'El usuario ya existe.';
+    $update_sql = "UPDATE usuarios SET usuario='$usuario', rol='$rol' WHERE id=$id";
+    if (!empty($_POST['password'])) {
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $update_sql = "UPDATE usuarios SET usuario='$usuario', password='$password', rol='$rol' WHERE id=$id";
+    }
+    if (mysqli_query($conexion, $update_sql)) {
+        header('Location: usuarios.php');
+        exit;
     } else {
-        $sql = "INSERT INTO usuarios (usuario, password, rol) VALUES ('$usuario', '$password', '$rol')";
-        if (mysqli_query($conexion, $sql)) {
-            header('Location: usuarios.php');
-            exit;
-        } else {
-            $mensaje = 'Error al crear usuario.';
-        }
+        $mensaje = 'Error al actualizar usuario.';
     }
 }
 ?>
@@ -31,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Usuario - Sistema Control Documental NSEL-CLNSA</title>
+    <title>Editar Usuario - Sistema Control Documental NSEL-CLNSA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
@@ -53,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container mt-5">
     <div class="row mb-4">
         <div class="col">
-            <h2 class="fw-bold text-secondary"><i class="bi bi-person-plus-fill"></i> Crear nuevo usuario</h2>
-            <p class="text-muted">Completa el siguiente formulario para registrar un nuevo usuario en el sistema.</p>
+            <h2 class="fw-bold text-secondary"><i class="bi bi-pencil"></i> Editar usuario</h2>
+            <p class="text-muted">Modifica los datos del usuario seleccionado.</p>
         </div>
     </div>
     <div class="row">
@@ -67,21 +75,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form method="post" autocomplete="off">
                         <div class="mb-3">
                             <label for="usuario" class="form-label">Usuario</label>
-                            <input type="text" name="usuario" id="usuario" class="form-control" required>
+                            <input type="text" name="usuario" id="usuario" class="form-control" value="<?php echo htmlspecialchars($usuarioData['usuario']); ?>" required>
                         </div>
                         <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" name="password" id="password" class="form-control" required>
+                            <label for="password" class="form-label">Contraseña (dejar vacío para no cambiar)</label>
+                            <input type="password" name="password" id="password" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="rol" class="form-label">Rol</label>
                             <select name="rol" id="rol" class="form-select">
-                                <option value="admin">Administrador</option>
-                                <option value="consulta">Consulta</option>
+                                <option value="admin" <?php if($usuarioData['rol']=='admin') echo 'selected'; ?>>Administrador</option>
+                                <option value="consulta" <?php if($usuarioData['rol']=='consulta') echo 'selected'; ?>>Consulta</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-person-plus"></i> Crear usuario
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-pencil"></i> Actualizar usuario
                         </button>
                     </form>
                 </div>

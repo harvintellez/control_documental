@@ -22,8 +22,12 @@ include 'seguridad.php'; // Solo usuarios logueados pueden registrar
         <a class="navbar-brand fw-bold" href="panel.php"><i class="bi bi-briefcase-fill me-2"></i>Sistema de Control Documental NSEL-CLNSA</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="panel.php">Inicio</a></li>
-                <li class="nav-item"><a class="nav-link" href="consulta.php">Consultas</a></li>
+                <li class="nav-item"><a class="nav-link " href="panel.php">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link active" href="registro.php">Nuevo Registro</a></li>
+                <li class="nav-item"><a class="nav-link " href="consulta.php">Consultas</a></li>
+                <li class="nav-item"><a class="nav-link " href="buscar_trabajadores.php">Busquedas</a></li>
+                <li class="nav-item"><a class="nav-link " href="usuarios.php">Usuarios</a></li>
+                <li class="nav-item"><a class="nav-link text-danger" href="logout.php">Cerrar Sesión</a></li>
             </ul>
         </div>
     </div>

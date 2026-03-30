@@ -25,8 +25,10 @@ $total_pensiones = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) a
         <a class="navbar-brand fw-bold" href="panel.php"><i class="bi bi-briefcase-fill me-2"></i>Sistema de Control Documental NSEL-CLNSA</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link active" href="panel.php">Inicio</a></li>
                 <li class="nav-item"><a class="nav-link" href="registro.php">Nuevo Registro</a></li>
-                <li class="nav-item"><a class="nav-link" href="consulta.php">Consultas</a></li>
+                <li class="nav-item"><a class="nav-link " href="consulta.php">Consultas</a></li>
+                <li class="nav-item"><a class="nav-link " href="usuarios.php">Usuarios</a></li>
                 <li class="nav-item"><a class="nav-link text-danger" href="logout.php">Cerrar Sesión</a></li>
             </ul>
         </div>
@@ -36,7 +38,14 @@ $total_pensiones = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) a
 <div class="container mt-5">
     <div class="row mb-4">
         <div class="col">
-            <h2 class="fw-bold text-secondary">Bienvenido, <?php echo $_SESSION['usuario_nombre']; ?></h2>
+            <h2 class="fw-bold text-secondary">Bienvenido, <?php echo $_SESSION['usuario_nombre']; 
+            
+            //echo '<pre>';
+            //    print_r($_SESSION['rol']);
+            //echo '</pre>';
+
+            
+            ?></h2>
             <p class="text-muted">Resumen general de documentos legales registrados.</p>
         </div>
     </div>
@@ -120,6 +129,7 @@ $total_pensiones = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) a
         </div>
     </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
