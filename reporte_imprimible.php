@@ -95,7 +95,7 @@ $fecha_actual = date("d/m/Y H:i");
     <div class="card p-5 shadow-sm border-0">
         <div class="header-reporte d-flex justify-content-between align-items-start">
             <div>
-                <h1 class="fw-bold text-primary mb-0">SCD LEGAL</h1>
+                <h1 class="fw-bold text-primary mb-0"><i class="bi bi-briefcase-fill me-2"></i>SCD NSEL-CLNSA</h1>
                 <h4 class="text-secondary mb-1">Reporte de Control Documental</h4>
                 <p class="mb-0 small">
                     <strong>Filtro aplicado:</strong> <?php echo ($tipo_filtro == 'Todos') ? 'Todos los registros' : $tipo_filtro; ?>
@@ -153,7 +153,7 @@ $fecha_actual = date("d/m/Y H:i");
                 <div class="col-4">
                     <div class="firma-espacio"></div>
                     <p class="small fw-bold mb-0">Revisado por</p>
-                    <p class="small text-muted">Recursos Humanos / Legal</p>
+                    <p class="small text-muted">Capital Humano / Legal</p>
                 </div>
             </div>
         </div>

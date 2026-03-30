@@ -14,7 +14,7 @@ $total_pensiones = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) a
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - SCD</title>
+    <title>Panel de Control - Sistema Control Documental de NSEL-CLNSA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
@@ -22,7 +22,7 @@ $total_pensiones = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) a
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="panel.php"><i class="bi bi-briefcase-fill me-2"></i>SCD LEGAL</a>
+        <a class="navbar-brand fw-bold" href="panel.php"><i class="bi bi-briefcase-fill me-2"></i>Sistema de Control Documental NSEL-CLNSA</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="registro.php">Nuevo Registro</a></li>
