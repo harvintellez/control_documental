@@ -32,9 +32,9 @@ $resultado = mysqli_query($conexion, $sql);
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link active" href="panel.php">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link " href="panel.php">Inicio</a></li>
                 <li class="nav-item"><a class="nav-link" href="registro.php">Nuevo Registro</a></li>
-                <li class="nav-item"><a class="nav-link " href="consulta.php">Consultas</a></li>
+                <li class="nav-item"><a class="nav-link active" href="consulta.php">Consultas</a></li>
                 <li class="nav-item"><a class="nav-link " href="buscar_trabajadores.php">Busquedas</a></li>
                 <li class="nav-item"><a class="nav-link " href="usuarios.php">Usuarios</a></li>
                 <li class="nav-item"><a class="nav-link text-danger" href="logout.php">Cerrar Sesión</a></li>

@@ -5,20 +5,37 @@ include 'conexion.php';
 $resultados = [];
 $mensaje = '';
 
+// Procesamiento de búsqueda y exportación a CSV
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigos_raw = $_POST['codigos'];
-    // Limpiar y separar los códigos
     $codigos = array_filter(array_map('trim', explode(',', $codigos_raw)), function($c) { return $c !== ''; });
     if (count($codigos) > 0) {
-        // Generamos la lista segura para SQL
         $codigos_sql = implode(',', array_map(function($c) use ($conexion) { 
             return "'" . mysqli_real_escape_string($conexion, $c) . "'";
         }, $codigos));
-        // Consulta la tabla
         $sql = "SELECT codigo_trabajador, nombre_completo, cedula, descripcion_oficio FROM trabajadores WHERE codigo_trabajador IN ($codigos_sql)";
         $result = mysqli_query($conexion, $sql);
         while ($fila = mysqli_fetch_assoc($result)) {
             $resultados[] = $fila;
+        }
+
+        // Exportar a CSV
+        if (isset($_POST['exportar']) && count($resultados) > 0) {
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename=trabajadores_resultado.csv');
+            $salida = fopen('php://output', 'w');
+            // Cabecera
+            fputcsv($salida, ['Código Trabajador', 'Nombre Completo', 'Cédula', 'Descripción Oficio']);
+            foreach ($resultados as $trabajador) {
+                fputcsv($salida, [
+                    $trabajador['codigo_trabajador'],
+                    $trabajador['nombre_completo'],
+                    $trabajador['cedula'],
+                    $trabajador['descripcion_oficio']
+                ]);
+            }
+            fclose($salida);
+            exit;
         }
     } else {
         $mensaje = "Debe ingresar al menos un código.";
@@ -41,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <a class="navbar-brand fw-bold" href="panel.php"><i class="bi bi-briefcase-fill me-2"></i>Sistema de Control Documental NSEL-CLNSA</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link " href="panel.php">Inicio</a></li>
+                <<li class="nav-item"><a class="nav-link " href="panel.php">Inicio</a></li>
                 <li class="nav-item"><a class="nav-link" href="registro.php">Nuevo Registro</a></li>
                 <li class="nav-item"><a class="nav-link " href="consulta.php">Consultas</a></li>
                 <li class="nav-item"><a class="nav-link active" href="buscar_trabajadores.php">Busquedas</a></li>
@@ -71,9 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="codigos" class="form-label">Códigos de trabajador (separados por coma)</label>
                             <textarea name="codigos" id="codigos" class="form-control" rows="3" placeholder="Ej: 123, 456, 789"><?php if (isset($_POST['codigos'])) echo htmlspecialchars($_POST['codigos']); ?></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
                             <i class="bi bi-search"></i> Buscar
                         </button>
+                        <?php if (!empty($resultados)): ?>
+                        <button type="submit" name="exportar" class="btn btn-success w-100">
+                            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+                        </button>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>
