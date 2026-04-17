@@ -6,15 +6,19 @@ include 'conexion.php';
 $fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : date("Y-m-01");
 $fecha_fin    = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : date("Y-m-d");
 $tipo_filtro  = isset($_GET['tipo_documento']) ? $_GET['tipo_documento'] : 'Todos';
+$estado_filtro = isset($_GET['estado']) ? $_GET['estado'] : 'activos';
 
 // 2. Construir la consulta SQL dinámica
 $sql = "SELECT * FROM trabajadores WHERE DATE(fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin";
 
-// Si se selecciona un tipo específico, lo añadimos a la consulta
 if ($tipo_filtro != 'Todos') {
     $sql .= " AND tipo_documento = :tipo_filtro";
 }
-
+if ($estado_filtro === 'activos') {
+    $sql .= " AND inhabilitado = 0";
+} elseif ($estado_filtro === 'inhabilitados') {
+    $sql .= " AND inhabilitado = 1";
+}
 $sql .= " ORDER BY fecha_registro DESC";
 
 $stmt = $conexion->prepare($sql);
@@ -80,6 +84,14 @@ $fecha_actual = date("d/m/Y H:i");
                         <option value="Otro" <?php echo ($tipo_filtro == 'Otro') ? 'selected' : ''; ?>>Otro</option>
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold">Estado:</label>
+                    <select name="estado" class="form-select">
+                        <option value="todos"         <?php echo ($estado_filtro == 'todos')         ? 'selected' : ''; ?>>Todos</option>
+                        <option value="activos"       <?php echo ($estado_filtro == 'activos')       ? 'selected' : ''; ?>>Solo Activos</option>
+                        <option value="inhabilitados" <?php echo ($estado_filtro == 'inhabilitados') ? 'selected' : ''; ?>>Solo Inhabilitados</option>
+                    </select>
+                </div>
                 <div class="col-md-3 d-flex gap-2">
                     <button type="submit" class="btn btn-primary flex-grow-1" title="Filtrar">
                         <i class="bi bi-search"></i>
@@ -87,7 +99,7 @@ $fecha_actual = date("d/m/Y H:i");
                     <button type="button" onclick="window.print();" class="btn btn-success flex-grow-1" title="Imprimir PDF">
                         <i class="bi bi-printer"></i>
                     </button>
-                    <a href="exportar_excel.php?fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>&tipo_documento=<?php echo urlencode($tipo_filtro); ?>" 
+                    <a href="exportar_excel.php?fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>&tipo_documento=<?php echo urlencode($tipo_filtro); ?>&estado=<?php echo urlencode($estado_filtro); ?>" 
                        class="btn btn-warning flex-grow-1 text-white" title="Exportar Excel">
                         <i class="bi bi-file-earmark-excel"></i>
                     </a>
@@ -125,17 +137,19 @@ $fecha_actual = date("d/m/Y H:i");
                     <th>Nombre del Trabajador</th>
                     <th>Cédula</th>
                     <th>Tipo de Oficio</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if($stmt->rowCount() > 0): ?>
                     <?php while($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
-                    <tr class="small">
+                    <tr class="small" style="<?php echo $row['inhabilitado'] ? 'background-color:#f8d7da;color:#842029;' : ''; ?>">
                         <td class="text-center"><?php echo date("d/m/Y", strtotime($row['fecha_registro'])); ?></td>
                         <td class="text-center fw-bold"><?php echo htmlspecialchars($row['codigo_trabajador']); ?></td>
                         <td><?php echo htmlspecialchars($row['nombre_completo']); ?></td>
                         <td><?php echo htmlspecialchars($row['cedula']); ?></td>
-                        <td><span class="badge border text-dark w-100"><?php echo htmlspecialchars($row['tipo_documento']); ?></span></td>
+                        <td><?php echo htmlspecialchars($row['tipo_documento']); ?></td>
+                        <td class="text-center"><?php echo $row['inhabilitado'] ? 'Inhabilitado' : 'Activo'; ?></td>
                     </tr>
                     <?php endwhile; ?>
                 <?php else: ?>

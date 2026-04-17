@@ -3,9 +3,10 @@ include 'seguridad.php';
 include 'conexion.php';
 
 // 1. Capturar los mismos filtros que el reporte
-$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : date("Y-m-01");
-$fecha_fin    = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : date("Y-m-d");
-$tipo_filtro  = isset($_GET['tipo_documento']) ? $_GET['tipo_documento'] : 'Todos';
+$fecha_inicio  = isset($_GET['fecha_inicio'])   ? $_GET['fecha_inicio']   : date("Y-m-01");
+$fecha_fin     = isset($_GET['fecha_fin'])      ? $_GET['fecha_fin']      : date("Y-m-d");
+$tipo_filtro   = isset($_GET['tipo_documento']) ? $_GET['tipo_documento'] : 'Todos';
+$estado_filtro = isset($_GET['estado'])         ? $_GET['estado']         : 'activos';
 
 // 2. Configurar cabeceras para descargar el archivo Excel
 header("Content-Type: application/vnd.ms-excel; charset=utf-8");
@@ -17,6 +18,11 @@ header("Expires: 0");
 $sql = "SELECT * FROM trabajadores WHERE DATE(fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin";
 if ($tipo_filtro != 'Todos') {
     $sql .= " AND tipo_documento = :tipo_filtro";
+}
+if ($estado_filtro === 'activos') {
+    $sql .= " AND inhabilitado = 0";
+} elseif ($estado_filtro === 'inhabilitados') {
+    $sql .= " AND inhabilitado = 1";
 }
 $sql .= " ORDER BY fecha_registro DESC";
 
@@ -40,6 +46,7 @@ $stmt->execute();
             <th colspan="5">Periodo: <?php echo htmlspecialchars($fecha_inicio); ?> al <?php echo htmlspecialchars($fecha_fin); ?> | Filtro: <?php echo htmlspecialchars($tipo_filtro); ?></th>
         </tr>
         <tr style="background-color: #333; color: white;">
+            <th>Estado</th>
             <th>Fecha Registro</th>
             <th>Código</th>
             <th>Nombre del Trabajador</th>
@@ -50,6 +57,7 @@ $stmt->execute();
     <tbody>
         <?php while($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
         <tr>
+            <td style="<?php echo $row['inhabilitado'] ? 'background-color:#f8d7da;' : ''; ?>"><?php echo $row['inhabilitado'] ? 'Inhabilitado' : 'Activo'; ?></td>
             <td><?php echo date("d/m/Y", strtotime($row['fecha_registro'])); ?></td>
             <td><?php echo htmlspecialchars($row['codigo_trabajador']); ?></td>
             <td><?php echo htmlspecialchars($row['nombre_completo']); ?></td>
