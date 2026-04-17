@@ -8,16 +8,23 @@ $fecha_fin    = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : date("Y-m-d");
 $tipo_filtro  = isset($_GET['tipo_documento']) ? $_GET['tipo_documento'] : 'Todos';
 
 // 2. Construir la consulta SQL dinámica
-$sql = "SELECT * FROM trabajadores WHERE DATE(fecha_registro) BETWEEN '$fecha_inicio' AND '$fecha_fin'";
+$sql = "SELECT * FROM trabajadores WHERE DATE(fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin";
 
 // Si se selecciona un tipo específico, lo añadimos a la consulta
 if ($tipo_filtro != 'Todos') {
-    $tipo_filtro_db = mysqli_real_escape_string($conexion, $tipo_filtro);
-    $sql .= " AND tipo_documento = '$tipo_filtro_db'";
+    $sql .= " AND tipo_documento = :tipo_filtro";
 }
 
 $sql .= " ORDER BY fecha_registro DESC";
-$resultado = mysqli_query($conexion, $sql);
+
+$stmt = $conexion->prepare($sql);
+$stmt->bindParam(':fecha_inicio', $fecha_inicio);
+$stmt->bindParam(':fecha_fin', $fecha_fin);
+if ($tipo_filtro != 'Todos') {
+    $stmt->bindParam(':tipo_filtro', $tipo_filtro);
+}
+$stmt->execute();
+
 $fecha_actual = date("d/m/Y H:i");
 ?>
 
@@ -27,8 +34,8 @@ $fecha_actual = date("d/m/Y H:i");
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte Legal - SCD</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="font/bootstrap-icons.css">
     <style>
         /* Estilos para Pantalla e Impresión */
         body { background-color: #f8f9fa; }
@@ -58,11 +65,11 @@ $fecha_actual = date("d/m/Y H:i");
             <form method="GET" class="row g-3 align-items-end">
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Desde:</label>
-                    <input type="date" name="fecha_inicio" class="form-control" value="<?php echo $fecha_inicio; ?>">
+                    <input type="date" name="fecha_inicio" class="form-control" value="<?php echo htmlspecialchars($fecha_inicio); ?>">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Hasta:</label>
-                    <input type="date" name="fecha_fin" class="form-control" value="<?php echo $fecha_fin; ?>">
+                    <input type="date" name="fecha_fin" class="form-control" value="<?php echo htmlspecialchars($fecha_fin); ?>">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-bold">Tipo de Oficio:</label>
@@ -80,7 +87,7 @@ $fecha_actual = date("d/m/Y H:i");
                     <button type="button" onclick="window.print();" class="btn btn-success flex-grow-1" title="Imprimir PDF">
                         <i class="bi bi-printer"></i>
                     </button>
-                    <a href="exportar_excel.php?fecha_inicio=<?php echo $fecha_inicio; ?>&fecha_fin=<?php echo $fecha_fin; ?>&tipo_documento=<?php echo $tipo_filtro; ?>" 
+                    <a href="exportar_excel.php?fecha_inicio=<?php echo urlencode($fecha_inicio); ?>&fecha_fin=<?php echo urlencode($fecha_fin); ?>&tipo_documento=<?php echo urlencode($tipo_filtro); ?>" 
                        class="btn btn-warning flex-grow-1 text-white" title="Exportar Excel">
                         <i class="bi bi-file-earmark-excel"></i>
                     </a>
@@ -98,7 +105,7 @@ $fecha_actual = date("d/m/Y H:i");
                 <h1 class="fw-bold text-primary mb-0"><i class="bi bi-briefcase-fill me-2"></i>SCD NSEL-CLNSA</h1>
                 <h4 class="text-secondary mb-1">Reporte de Control Documental</h4>
                 <p class="mb-0 small">
-                    <strong>Filtro aplicado:</strong> <?php echo ($tipo_filtro == 'Todos') ? 'Todos los registros' : $tipo_filtro; ?>
+                    <strong>Filtro aplicado:</strong> <?php echo htmlspecialchars(($tipo_filtro == 'Todos') ? 'Todos los registros' : $tipo_filtro); ?>
                 </p>
                 <p class="mb-0 small">
                     <strong>Periodo:</strong> <?php echo date("d/m/Y", strtotime($fecha_inicio)); ?> al <?php echo date("d/m/Y", strtotime($fecha_fin)); ?>
@@ -106,7 +113,7 @@ $fecha_actual = date("d/m/Y H:i");
             </div>
             <div class="text-end small">
                 <p class="mb-0"><strong>Fecha de emisión:</strong> <?php echo $fecha_actual; ?></p>
-                <p class="mb-0"><strong>Generado por:</strong> <?php echo $_SESSION['usuario_nombre']; ?></p>
+                <p class="mb-0"><strong>Generado por:</strong> <?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></p>
             </div>
         </div>
 
@@ -121,14 +128,14 @@ $fecha_actual = date("d/m/Y H:i");
                 </tr>
             </thead>
             <tbody>
-                <?php if(mysqli_num_rows($resultado) > 0): ?>
-                    <?php while($row = mysqli_fetch_assoc($resultado)): ?>
+                <?php if($stmt->rowCount() > 0): ?>
+                    <?php while($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
                     <tr class="small">
                         <td class="text-center"><?php echo date("d/m/Y", strtotime($row['fecha_registro'])); ?></td>
-                        <td class="text-center fw-bold"><?php echo $row['codigo_trabajador']; ?></td>
-                        <td><?php echo $row['nombre_completo']; ?></td>
-                        <td><?php echo $row['cedula']; ?></td>
-                        <td><span class="badge border text-dark w-100"><?php echo $row['tipo_documento']; ?></span></td>
+                        <td class="text-center fw-bold"><?php echo htmlspecialchars($row['codigo_trabajador']); ?></td>
+                        <td><?php echo htmlspecialchars($row['nombre_completo']); ?></td>
+                        <td><?php echo htmlspecialchars($row['cedula']); ?></td>
+                        <td><span class="badge border text-dark w-100"><?php echo htmlspecialchars($row['tipo_documento']); ?></span></td>
                     </tr>
                     <?php endwhile; ?>
                 <?php else: ?>
@@ -146,7 +153,7 @@ $fecha_actual = date("d/m/Y H:i");
                 <div class="col-4">
                     <div class="firma-espacio"></div>
                     <p class="small fw-bold mb-0">Elaborado por</p>
-                    <p class="small text-muted"><?php echo $_SESSION['usuario_nombre']; ?></p>
+                    <p class="small text-muted"><?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></p>
                 </div>
                 <div class="col-4">
                     </div>
@@ -160,6 +167,6 @@ $fecha_actual = date("d/m/Y H:i");
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

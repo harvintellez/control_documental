@@ -7,16 +7,31 @@ if ($_SESSION['rol'] !== 'admin') {
 include 'conexion.php';
 
 if (isset($_GET['id'])) {
-    $id = mysqli_real_escape_string($conexion, $_GET['id']);
+    $id = intval($_GET['id']);
 
-    // Opcional: Aquí podrías buscar las rutas de los archivos y borrarlos del servidor con unlink()
-    
-    $sql = "DELETE FROM trabajadores WHERE id = '$id'";
+    // Buscar rutas de los archivos para borrarlos del servidor
+    $stmt_archivos = $conexion->prepare("SELECT foto_perfil, archivo_adjunto FROM trabajadores WHERE id = :id");
+    $stmt_archivos->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt_archivos->execute();
+    $archivos = $stmt_archivos->fetch(PDO::FETCH_ASSOC);
 
-    if (mysqli_query($conexion, $sql)) {
+    if ($archivos) {
+        if (!empty($archivos['foto_perfil']) && file_exists($archivos['foto_perfil'])) {
+            unlink($archivos['foto_perfil']);
+        }
+        if (!empty($archivos['archivo_adjunto']) && file_exists($archivos['archivo_adjunto'])) {
+            unlink($archivos['archivo_adjunto']);
+        }
+    }
+
+    $stmt_delete = $conexion->prepare("DELETE FROM trabajadores WHERE id = :id");
+    $stmt_delete->bindParam(':id', $id, PDO::PARAM_INT);
+
+    if ($stmt_delete->execute()) {
         header("Location: consulta.php?res=del");
+        exit();
     } else {
-        echo "Error al eliminar: " . mysqli_error($conexion);
+        echo "Error al eliminar.";
     }
 }
 ?>

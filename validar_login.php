@@ -3,15 +3,16 @@ session_start();
 include 'conexion.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
-    $password_ingresada = $_POST['password']; // No escapamos aquí porque la función verify lo maneja
+    $usuario = $_POST['usuario'];
+    $password_ingresada = $_POST['password'];
 
-    // Solo buscamos por el nombre de usuario
-    $sql = "SELECT id, usuario, password, rol FROM usuarios WHERE usuario = '$usuario'";
-    $resultado = mysqli_query($conexion, $sql);
+    // Consulta preparada con PDO
+    $stmt = $conexion->prepare("SELECT id, usuario, password, rol FROM usuarios WHERE usuario = :usuario");
+    $stmt->bindParam(':usuario', $usuario);
+    $stmt->execute();
 
-    if (mysqli_num_rows($resultado) == 1) {
-        $datos = mysqli_fetch_assoc($resultado);
+    if ($stmt->rowCount() == 1) {
+        $datos = $stmt->fetch(PDO::FETCH_ASSOC);
         
         // Verificamos si la contraseña ingresada coincide con el Hash de la base de datos
         if (password_verify($password_ingresada, $datos['password'])) {

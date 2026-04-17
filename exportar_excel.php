@@ -14,13 +14,19 @@ header("Pragma: no-cache");
 header("Expires: 0");
 
 // 3. Construir la consulta SQL
-$sql = "SELECT * FROM trabajadores WHERE DATE(fecha_registro) BETWEEN '$fecha_inicio' AND '$fecha_fin'";
+$sql = "SELECT * FROM trabajadores WHERE DATE(fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin";
 if ($tipo_filtro != 'Todos') {
-    $tipo_filtro_db = mysqli_real_escape_string($conexion, $tipo_filtro);
-    $sql .= " AND tipo_documento = '$tipo_filtro_db'";
+    $sql .= " AND tipo_documento = :tipo_filtro";
 }
 $sql .= " ORDER BY fecha_registro DESC";
-$resultado = mysqli_query($conexion, $sql);
+
+$stmt = $conexion->prepare($sql);
+$stmt->bindParam(':fecha_inicio', $fecha_inicio);
+$stmt->bindParam(':fecha_fin', $fecha_fin);
+if ($tipo_filtro != 'Todos') {
+    $stmt->bindParam(':tipo_filtro', $tipo_filtro);
+}
+$stmt->execute();
 
 // 4. Crear la estructura de la tabla para Excel
 ?>
@@ -31,7 +37,7 @@ $resultado = mysqli_query($conexion, $sql);
             <th colspan="5" style="font-size: 16px;">SISTEMA DE CONTROL DOCUMENTAL - REPORTE DE OFICIOS</th>
         </tr>
         <tr style="background-color: #f2f2f2;">
-            <th colspan="5">Periodo: <?php echo $fecha_inicio; ?> al <?php echo $fecha_fin; ?> | Filtro: <?php echo $tipo_filtro; ?></th>
+            <th colspan="5">Periodo: <?php echo htmlspecialchars($fecha_inicio); ?> al <?php echo htmlspecialchars($fecha_fin); ?> | Filtro: <?php echo htmlspecialchars($tipo_filtro); ?></th>
         </tr>
         <tr style="background-color: #333; color: white;">
             <th>Fecha Registro</th>
@@ -42,13 +48,13 @@ $resultado = mysqli_query($conexion, $sql);
         </tr>
     </thead>
     <tbody>
-        <?php while($row = mysqli_fetch_assoc($resultado)): ?>
+        <?php while($row = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
         <tr>
             <td><?php echo date("d/m/Y", strtotime($row['fecha_registro'])); ?></td>
-            <td><?php echo $row['codigo_trabajador']; ?></td>
-            <td><?php echo $row['nombre_completo']; ?></td>
-            <td><?php echo $row['cedula']; ?></td>
-            <td><?php echo $row['tipo_documento']; ?></td>
+            <td><?php echo htmlspecialchars($row['codigo_trabajador']); ?></td>
+            <td><?php echo htmlspecialchars($row['nombre_completo']); ?></td>
+            <td><?php echo htmlspecialchars($row['cedula']); ?></td>
+            <td><?php echo htmlspecialchars($row['tipo_documento']); ?></td>
         </tr>
         <?php endwhile; ?>
     </tbody>

@@ -8,16 +8,25 @@ include 'conexion.php';
 
 $mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
+    $usuario = trim($_POST['usuario']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $rol = ($_POST['rol'] === 'admin') ? 'admin' : 'consulta';
 
-    $existe = mysqli_query($conexion, "SELECT id FROM usuarios WHERE usuario = '$usuario'");
-    if (mysqli_num_rows($existe) > 0) {
+    // Verificar si existe usando PDO
+    $stmt_check = $conexion->prepare("SELECT id FROM usuarios WHERE usuario = :usuario");
+    $stmt_check->bindParam(':usuario', $usuario);
+    $stmt_check->execute();
+
+    if ($stmt_check->rowCount() > 0) {
         $mensaje = 'El usuario ya existe.';
     } else {
-        $sql = "INSERT INTO usuarios (usuario, password, rol) VALUES ('$usuario', '$password', '$rol')";
-        if (mysqli_query($conexion, $sql)) {
+        $sql = "INSERT INTO usuarios (usuario, password, rol) VALUES (:usuario, :password, :rol)";
+        $stmt_insert = $conexion->prepare($sql);
+        $stmt_insert->bindParam(':usuario', $usuario);
+        $stmt_insert->bindParam(':password', $password);
+        $stmt_insert->bindParam(':rol', $rol);
+        
+        if ($stmt_insert->execute()) {
             header('Location: usuarios.php');
             exit;
         } else {
@@ -25,73 +34,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+include 'includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Usuario - Sistema Control Documental NSEL-CLNSA</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="panel.php"><i class="bi bi-briefcase-fill me-2"></i>Sistema de Control Documental NSEL-CLNSA</a>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="registro.php">Nuevo Registro</a></li>
-                <li class="nav-item"><a class="nav-link" href="consulta.php">Consultas</a></li>
-                <li class="nav-item"><a class="nav-link text-danger" href="logout.php">Cerrar Sesión</a></li>
-            </ul>
-        </div>
-    </div>
-</nav>
-
-<div class="container mt-5">
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="fw-bold text-secondary"><i class="bi bi-person-plus-fill"></i> Crear nuevo usuario</h2>
-            <p class="text-muted">Completa el siguiente formulario para registrar un nuevo usuario en el sistema.</p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 col-lg-5 mx-auto">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <?php if ($mensaje): ?>
-                        <div class="alert alert-danger"><?php echo $mensaje; ?></div>
-                    <?php endif; ?>
-                    <form method="post" autocomplete="off">
-                        <div class="mb-3">
-                            <label for="usuario" class="form-label">Usuario</label>
-                            <input type="text" name="usuario" id="usuario" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" name="password" id="password" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="rol" class="form-label">Rol</label>
-                            <select name="rol" id="rol" class="form-select">
-                                <option value="admin">Administrador</option>
-                                <option value="consulta">Consulta</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-person-plus"></i> Crear usuario
-                        </button>
-                    </form>
-                </div>
-            </div>
-            <a href="usuarios.php" class="btn btn-outline-dark mt-3">
-                <i class="bi bi-arrow-left"></i> Volver a la lista de usuarios
-            </a>
-        </div>
+<div class="row mb-4 mt-5">
+    <div class="col">
+        <h2 class="fw-bold text-secondary"><i class="bi bi-person-plus-fill"></i> Crear nuevo usuario</h2>
+        <p class="text-muted">Completa el siguiente formulario para registrar un nuevo usuario en el sistema.</p>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<div class="row mb-5">
+    <div class="col-md-6 col-lg-5 mx-auto">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <?php if ($mensaje): ?>
+                    <div class="alert alert-danger"><?php echo htmlspecialchars($mensaje); ?></div>
+                <?php endif; ?>
+                <form method="post" autocomplete="off">
+                    <div class="mb-3">
+                        <label for="usuario" class="form-label">Usuario</label>
+                        <input type="text" name="usuario" id="usuario" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" name="password" id="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rol" class="form-label">Rol</label>
+                        <select name="rol" id="rol" class="form-select">
+                            <option value="admin">Administrador</option>
+                            <option value="consulta">Consulta</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-person-plus"></i> Crear usuario
+                    </button>
+                </form>
+            </div>
+        </div>
+        <a href="usuarios.php" class="btn btn-outline-dark mt-3">
+            <i class="bi bi-arrow-left"></i> Volver a la lista de usuarios
+        </a>
+    </div>
+</div>
+
+<?php include 'includes/footer.php'; ?>

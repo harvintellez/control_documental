@@ -13,7 +13,9 @@ if (!isset($_GET['id'])) {
 
 $id = intval($_GET['id']);
 if ($id > 0) {
-    mysqli_query($conexion, "DELETE FROM usuarios WHERE id = $id");
+    $stmt = $conexion->prepare("DELETE FROM usuarios WHERE id = :id");
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
 }
 
 header('Location: usuarios.php');

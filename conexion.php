@@ -4,9 +4,13 @@ $user = "root";
 $pass = "";
 $db   = "control_documental";
 
-$conexion = mysqli_connect($host, $user, $pass, $db);
-
-if (!$conexion) {
-    die("Error de conexión: " . mysqli_connect_error());
+try {
+    $conexion = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
+    // Configurar PDO para que lance excepciones en caso de error
+    $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Error de conexión: " . $e->getMessage());
 }
+
+define('URL_BASE', 'http://172.16.31.62/control_documental/');
 ?>
