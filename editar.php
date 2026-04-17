@@ -19,6 +19,8 @@ if (isset($_GET['id'])) {
         $tipo = htmlspecialchars($row['tipo_documento']);
         $valor_inicial = htmlspecialchars($row['valor_inicial']);
         $valor_final = htmlspecialchars($row['valor_final']);
+        $foto_actual = $row['foto_perfil'];
+        $doc_actual = $row['archivo_adjunto'];
     } else {
         header("Location: consulta.php?msg=No+encontrado");
         exit();
@@ -35,13 +37,58 @@ if (isset($_POST['actualizar'])) {
     $valor_inicial_nuevo = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final_nuevo = !empty($_POST['valor_final']) ? floatval($_POST['valor_final']) : null;
 
+    $max_size = 5 * 1024 * 1024;
+    $dir_fotos = "uploads/fotos/";
+    $dir_docs  = "uploads/documentos/";
+    
+    if (!file_exists($dir_fotos)) { mkdir($dir_fotos, 0755, true); }
+    if (!file_exists($dir_docs))  { mkdir($dir_docs,  0755, true); }
+
+    function validar_mime_seguro($tmp_name, $tipos_permitidos) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime_type = finfo_file($finfo, $tmp_name);
+        finfo_close($finfo);
+        return in_array($mime_type, $tipos_permitidos);
+    }
+
+    $ruta_foto_bd = $foto_actual;
+    $ruta_doc_bd = $doc_actual;
+
+    // Procesar nueva foto
+    if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] == UPLOAD_ERR_OK) {
+        if ($_FILES['foto_perfil']['size'] <= $max_size && validar_mime_seguro($_FILES['foto_perfil']['tmp_name'], ['image/jpeg', 'image/png'])) {
+            $ext = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
+            $nombre_foto = "foto_" . time() . "_" . uniqid() . "." . $ext;
+            $ruta_nueva = $dir_fotos . $nombre_foto;
+            if (move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $ruta_nueva)) {
+                if (!empty($foto_actual) && file_exists($foto_actual)) { @unlink($foto_actual); }
+                $ruta_foto_bd = $ruta_nueva;
+            }
+        }
+    }
+
+    // Procesar nuevo documento
+    if (isset($_FILES['archivo_oficio']) && $_FILES['archivo_oficio']['error'] == UPLOAD_ERR_OK) {
+        if ($_FILES['archivo_oficio']['size'] <= $max_size && validar_mime_seguro($_FILES['archivo_oficio']['tmp_name'], ['application/pdf', 'image/jpeg', 'image/png'])) {
+            $ext = strtolower(pathinfo($_FILES['archivo_oficio']['name'], PATHINFO_EXTENSION));
+            $nombre_doc = "doc_" . time() . "_" . uniqid() . "." . $ext;
+            $ruta_nueva = $dir_docs . $nombre_doc;
+            if (move_uploaded_file($_FILES['archivo_oficio']['tmp_name'], $ruta_nueva)) {
+                if (!empty($doc_actual) && file_exists($doc_actual)) { @unlink($doc_actual); }
+                $ruta_doc_bd = $ruta_nueva;
+            }
+        }
+    }
+
     $update_query = "UPDATE trabajadores SET 
         nombre_completo = :nombre, 
         cedula = :cedula, 
         descripcion_oficio = :descripcion,
         tipo_documento = :tipo,
         valor_inicial = :valor_inicial,
-        valor_final = :valor_final
+        valor_final = :valor_final,
+        foto_perfil = :foto,
+        archivo_adjunto = :doc
         WHERE id = :id";
         
     $stmt_update = $conexion->prepare($update_query);
@@ -51,13 +98,15 @@ if (isset($_POST['actualizar'])) {
     $stmt_update->bindParam(':tipo', $tipo_nuevo);
     $stmt_update->bindParam(':valor_inicial', $valor_inicial_nuevo);
     $stmt_update->bindParam(':valor_final', $valor_final_nuevo);
+    $stmt_update->bindParam(':foto', $ruta_foto_bd);
+    $stmt_update->bindParam(':doc', $ruta_doc_bd);
     $stmt_update->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($stmt_update->execute()) {
         header("Location: consulta.php?status=success");
         exit();
     } else {
-        echo "Error al actualizar.";
+        $error_msg = "Error al actualizar.";
     }
 }
 
@@ -66,12 +115,15 @@ include 'includes/header.php';
 
 <div class="row justify-content-center mt-5 mb-5">
     <div class="col-md-8">
+        <?php if(isset($error_msg)): ?>
+            <div class="alert alert-danger"><?php echo htmlspecialchars($error_msg); ?></div>
+        <?php endif; ?>
         <div class="card shadow border-0">
             <div class="card-header bg-warning py-3">
                 <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-pencil-square me-2"></i>Editar Registro: <?php echo $codigo; ?></h5>
             </div>
             <div class="card-body p-4">
-                <form action="editar.php?id=<?php echo $id; ?>" method="POST">
+                <form action="editar.php?id=<?php echo $id; ?>" method="POST" enctype="multipart/form-data">
                     
                     <div class="mb-3">
                         <label class="form-label fw-bold">Nombre Completo</label>
@@ -115,8 +167,24 @@ include 'includes/header.php';
                         <textarea name="descripcion" class="form-control" rows="4"><?php echo $descripcion; ?></textarea>
                     </div>
 
-                    <div class="alert alert-info small">
-                        <i class="bi bi-info-circle me-2"></i>Nota: Para cambiar la fotografía o el PDF, favor de realizar un nuevo registro o contactar al administrador del sistema.
+                    <div class="row mb-4 mt-4 bg-light p-3 rounded">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2">Actualizar Archivos Adjuntos</h6>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Fotografía del Trabajador</label>
+                            <input type="file" name="foto_perfil" class="form-control" accept=".jpg,.jpeg,.png">
+                            <div class="form-text small">Dejar en blanco para mantener la fotografía actual.</div>
+                            <?php if(!empty($foto_actual)): ?>
+                                <div class="mt-2 text-success small"><i class="bi bi-check-circle me-1"></i>Tiene foto adjunta</div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Documento del Oficio (PDF o Imagen)</label>
+                            <input type="file" name="archivo_oficio" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="form-text small">Dejar en blanco para mantener el documento actual.</div>
+                            <?php if(!empty($doc_actual)): ?>
+                                <div class="mt-2 text-success small"><i class="bi bi-check-circle me-1"></i>Tiene documento adjunto</div>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
@@ -129,4 +197,4 @@ include 'includes/header.php';
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

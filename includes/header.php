@@ -31,8 +31,20 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <li class="nav-item"><a class="nav-link <?= ($current_page == 'panel.php') ? 'active' : '' ?>" href="panel.php">Inicio</a></li>
                 <li class="nav-item"><a class="nav-link <?= ($current_page == 'registro.php') ? 'active' : '' ?>" href="registro.php">Nuevo Registro</a></li>
                 <li class="nav-item"><a class="nav-link <?= ($current_page == 'consulta.php') ? 'active' : '' ?>" href="consulta.php">Consultas</a></li>
-                <li class="nav-item"><a class="nav-link <?= ($current_page == 'buscar_trabajadores.php') ? 'active' : '' ?>" href="buscar_trabajadores.php">Busquedas</a></li>
+                <li class="nav-item"><a class="nav-link <?= ($current_page == 'buscar_trabajadores.php') ? 'active' : '' ?>" href="buscar_trabajadores.php">Búsquedas</a></li>
+                <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'admin'): ?>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle <?= ($current_page == 'usuarios.php' || $current_page == 'carga_masiva.php') ? 'active' : '' ?>" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear-fill me-1"></i>Admin
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item <?= ($current_page == 'usuarios.php') ? 'active' : '' ?>" href="usuarios.php"><i class="bi bi-people me-2"></i>Usuarios</a></li>
+                        <li><a class="dropdown-item <?= ($current_page == 'carga_masiva.php') ? 'active' : '' ?>" href="carga_masiva.php"><i class="bi bi-file-earmark-arrow-up me-2"></i>Carga Masiva</a></li>
+                    </ul>
+                </li>
+                <?php else: ?>
                 <li class="nav-item"><a class="nav-link <?= ($current_page == 'usuarios.php') ? 'active' : '' ?>" href="usuarios.php">Usuarios</a></li>
+                <?php endif; ?>
                 <li class="nav-item"><a class="nav-link text-danger" href="logout.php">Cerrar Sesión</a></li>
             </ul>
         </div>

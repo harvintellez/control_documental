@@ -1,0 +1,3 @@
+codigo_trabajador,nombre_completo,cedula,tipo_documento,descripcion_oficio,valor_inicial,valor_final
+1001,Juan Perez Perez,001-010190-0001A,Embargo Judicial,Embargo por deuda bancaria,5000.00,0.00
+1002,Maria Lopez Ruiz,001-020285-0002B,Pensión Alimenticia,Retencion mensual de pension,2000.00,0.00
