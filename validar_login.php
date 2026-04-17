@@ -3,7 +3,7 @@ session_start();
 include 'conexion.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $usuario = $_POST['usuario'];
+    $usuario = trim($_POST['usuario']);
     $password_ingresada = $_POST['password'];
 
     // Consulta preparada con PDO
@@ -16,6 +16,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Verificamos si la contraseña ingresada coincide con el Hash de la base de datos
         if (password_verify($password_ingresada, $datos['password'])) {
+            // Regenerar ID de sesión para prevenir Session Fixation
+            session_regenerate_id(true);
+
             $_SESSION['usuario_id'] = $datos['id'];
             $_SESSION['usuario_nombre'] = $datos['usuario'];
             $_SESSION['rol'] = $datos['rol'];
@@ -25,10 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             // Contraseña incorrecta
             header("Location: index.php?error=1");
+            exit();
         }
     } else {
         // Usuario no existe
         header("Location: index.php?error=1");
+        exit();
     }
 }
-?>
+?>

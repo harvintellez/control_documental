@@ -1,7 +1,7 @@
 <?php
 include 'seguridad.php';
 if ($_SESSION['rol'] !== 'admin') {
-    header('Location: panel.php');
+    header('Location: consulta.php?error=sin_permiso');
     exit;
 }
 include 'conexion.php';

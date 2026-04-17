@@ -26,6 +26,27 @@ include 'includes/header.php';
             <?php endif; ?>
         <?php endif; ?>
 
+        <?php if (isset($_GET['error']) && $_GET['error'] == 'sin_permiso'): ?>
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert" id="alertaSinPermiso">
+                <i class="bi bi-shield-lock-fill me-2"></i>
+                <strong>Acción no permitida:</strong> Solo los administradores pueden eliminar registros.
+                <br><small class="text-muted">Esta página se actualizará automáticamente en <span id="cuentaRegresiva">4</span> segundos...</small>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <script>
+                let cuenta = 4;
+                const span = document.getElementById('cuentaRegresiva');
+                const intervalo = setInterval(() => {
+                    cuenta--;
+                    if (span) span.textContent = cuenta;
+                    if (cuenta <= 0) {
+                        clearInterval(intervalo);
+                        window.location.href = 'consulta.php';
+                    }
+                }, 1000);
+            </script>
+        <?php endif; ?>
+
         <?php if (isset($_GET['status']) && $_GET['status'] == 'success'): ?>
             <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
                 <i class="bi bi-info-circle-fill me-2"></i> Información actualizada con éxito.
@@ -92,9 +113,13 @@ include 'includes/header.php';
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                             <a href="eliminar.php?id=<?php echo $row['id']; ?>" 
-                                               class="btn btn-sm btn-danger" 
+                                               class="btn btn-sm <?php echo ($_SESSION['rol'] === 'admin') ? 'btn-danger' : 'btn-secondary'; ?>" 
+                                               <?php if ($_SESSION['rol'] !== 'admin'): ?>
+                                               title="Solo los administradores pueden eliminar"
+                                               <?php else: ?>
                                                onclick="return confirm('¿Seguro que deseas eliminar este registro?');" 
-                                               title="Eliminar">
+                                               title="Eliminar"
+                                               <?php endif; ?>>
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </div>

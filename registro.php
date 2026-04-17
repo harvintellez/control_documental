@@ -5,6 +5,23 @@ include 'includes/header.php';
 
 <div class="row justify-content-center mt-5">
     <div class="col-lg-8">
+        <?php
+        $errores_mapa = [
+            'campos_vacios'      => '<i class="bi bi-exclamation-circle me-2"></i>Faltan campos obligatorios (Código, Nombre o Cédula).',
+            'foto_grande'        => '<i class="bi bi-image me-2"></i>La fotografía supera el límite de 5 MB permitido.',
+            'doc_grande'         => '<i class="bi bi-file-earmark me-2"></i>El documento supera el límite de 5 MB permitido.',
+            'tipo_foto_invalido' => '<i class="bi bi-shield-x me-2"></i>Tipo de archivo de foto no permitido. Solo se acepta JPG o PNG.',
+            'tipo_doc_invalido'  => '<i class="bi bi-shield-x me-2"></i>Tipo de archivo de documento no permitido. Solo se acepta PDF, JPG o PNG.',
+            'db'                 => '<i class="bi bi-database-x me-2"></i>Ocurrió un error al guardar el registro. Intente de nuevo.',
+        ];
+        if (isset($_GET['error']) && array_key_exists($_GET['error'], $errores_mapa)):
+        ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?php echo $errores_mapa[$_GET['error']]; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="card shadow">
             <div class="card-header bg-primary text-white py-3">
                 <h4 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Registrar Nuevo Documento</h4>
