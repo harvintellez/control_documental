@@ -31,35 +31,27 @@ $stmt->execute();
 
 $fecha_actual = date("d/m/Y H:i");
 ?>
+<?php
+include 'includes/header.php';
+?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Legal - SCD</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="font/bootstrap-icons.css">
-    <style>
-        /* Estilos para Pantalla e Impresión */
-        body { background-color: #f8f9fa; }
-        
-        @media print {
-            .no-print { display: none !important; }
-            body { background-color: white !important; }
-            .container { max-width: 100% !important; width: 100% !important; margin: 0; }
-            .card { border: none !important; box-shadow: none !important; }
-            .header-reporte { border-bottom: 2px solid #000 !important; }
-        }
+<style>
+    /* Estilos adicionales para Reporte e Impresión */
+    @media print {
+        .no-print, nav.navbar { display: none !important; }
+        body { background-color: white !important; padding: 0 !important; }
+        .container { max-width: 100% !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .header-reporte { border-bottom: 2px solid #000 !important; }
+        .mt-4, .mb-5 { margin-top: 0 !important; margin-bottom: 0 !important; }
+    }
 
-        .header-reporte { border-bottom: 3px solid #0d6efd; padding-bottom: 15px; margin-bottom: 20px; }
-        .table thead { background-color: #212529 !important; color: white !important; }
-        .firma-espacio { border-top: 1px solid #000; width: 200px; margin: 50px auto 10px auto; }
-    </style>
-</head>
-<body>
+    .header-reporte { border-bottom: 3px solid #0d6efd; padding-bottom: 15px; margin-bottom: 20px; }
+    .table thead { background-color: #212529 !important; color: white !important; }
+    .firma-espacio { border-top: 1px solid #000; width: 200px; margin: 50px auto 10px auto; }
+</style>
 
-<div class="container mt-4 mb-5">
+<div class="mt-4 mb-5">
     
     <div class="card shadow-sm mb-4 no-print border-0">
         <div class="card-header bg-dark text-white fw-bold">
@@ -178,9 +170,4 @@ $fecha_actual = date("d/m/Y H:i");
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
-<script src="js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <?php include 'includes/footer.php'; ?>
