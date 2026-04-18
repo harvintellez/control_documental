@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Crear placeholders para PDO (?, ?, ?)
         $placeholders = implode(',', array_fill(0, count($codigos), '?'));
         
-        $sql = "SELECT codigo_trabajador, nombre_completo, cedula, descripcion_oficio FROM trabajadores WHERE codigo_trabajador IN ($placeholders)";
+        $sql = "SELECT codigo_trabajador, nombre_completo, cedula, descripcion_oficio, inhabilitado FROM trabajadores WHERE codigo_trabajador IN ($placeholders)";
         $stmt = $conexion->prepare($sql);
         $stmt->execute(array_values($codigos));
         
@@ -32,13 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo '<table border="1">';
             echo '<thead>';
             echo '<tr style="background-color: #0d6efd; color: white;">';
-            echo '<th colspan="4" style="font-size: 16px;">SISTEMA DE CONTROL DOCUMENTAL - BÚSQUEDA DE TRABAJADORES</th>';
+            echo '<th colspan="5" style="font-size: 16px;">SISTEMA DE CONTROL DOCUMENTAL - BÚSQUEDA DE TRABAJADORES</th>';
             echo '</tr>';
             echo '<tr style="background-color: #333; color: white;">';
             echo '<th>Código Trabajador</th>';
             echo '<th>Nombre Completo</th>';
             echo '<th>Cédula</th>';
             echo '<th>Descripción Oficio</th>';
+            echo '<th>Estado</th>';
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
@@ -48,6 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo '<td>' . htmlspecialchars($trabajador['nombre_completo']) . '</td>';
                 echo '<td>' . htmlspecialchars($trabajador['cedula']) . '</td>';
                 echo '<td>' . htmlspecialchars($trabajador['descripcion_oficio']) . '</td>';
+                $estado_texto = $trabajador['inhabilitado'] ? 'Inhabilitado' : 'Activo';
+                echo '<td>' . htmlspecialchars($estado_texto) . '</td>';
                 echo '</tr>';
             }
             echo '</tbody>';
@@ -108,6 +111,7 @@ include 'includes/header.php';
                                 <th>Nombre Completo</th>
                                 <th>Cédula</th>
                                 <th>Descripción Oficio</th>
+                                <th>Estado</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,6 +121,13 @@ include 'includes/header.php';
                                     <td><?php echo htmlspecialchars($trabajador['nombre_completo']); ?></td>
                                     <td><?php echo htmlspecialchars($trabajador['cedula']); ?></td>
                                     <td><?php echo htmlspecialchars($trabajador['descripcion_oficio']); ?></td>
+                                    <td>
+                                        <?php if ($trabajador['inhabilitado']): ?>
+                                            <span class="badge bg-danger">Inhabilitado</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success">Activo</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
