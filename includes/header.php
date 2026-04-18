@@ -40,6 +40,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item <?= ($current_page == 'usuarios.php') ? 'active' : '' ?>" href="usuarios.php"><i class="bi bi-people me-2"></i>Usuarios</a></li>
                         <li><a class="dropdown-item <?= ($current_page == 'carga_masiva.php') ? 'active' : '' ?>" href="carga_masiva.php"><i class="bi bi-file-earmark-arrow-up me-2"></i>Carga Masiva</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item <?= ($current_page == 'mantenimiento.php') ? 'active' : '' ?>" href="mantenimiento.php"><i class="bi bi-shield-lock me-2 text-danger"></i>Mantenimiento</a></li>
                     </ul>
                 </li>
                 <?php else: ?>
