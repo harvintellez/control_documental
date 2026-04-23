@@ -3,10 +3,10 @@ include 'seguridad.php'; // Protegemos el acceso
 include 'conexion.php';
 
 // Consultas para las estadísticas con PDO
-$total_trabajadores = $conexion->query("SELECT COUNT(*) as total FROM trabajadores")->fetch(PDO::FETCH_ASSOC)['total'];
-$total_embargos = $conexion->query("SELECT COUNT(*) as total FROM trabajadores WHERE tipo_documento = 'Embargo Judicial'")->fetch(PDO::FETCH_ASSOC)['total'];
-$total_otros = $conexion->query("SELECT COUNT(*) as total FROM trabajadores WHERE tipo_documento = 'Otro'")->fetch(PDO::FETCH_ASSOC)['total'];
-$total_pensiones = $conexion->query("SELECT COUNT(*) as total FROM trabajadores WHERE tipo_documento = 'Pensión Alimenticia'")->fetch(PDO::FETCH_ASSOC)['total'];
+$total_trabajadores = $conexion->query("SELECT COUNT(*) as total FROM trabajadores WHERE  inhabilitado = 0")->fetch(PDO::FETCH_ASSOC)['total'];
+$total_embargos = $conexion->query("SELECT COUNT(*) as total FROM trabajadores WHERE tipo_documento = 'Embargo Judicial' AND inhabilitado = 0")->fetch(PDO::FETCH_ASSOC)['total'];
+$total_otros = $conexion->query("SELECT COUNT(*) as total FROM trabajadores WHERE tipo_documento = 'Otro'AND inhabilitado = 0")->fetch(PDO::FETCH_ASSOC)['total'];
+$total_pensiones = $conexion->query("SELECT COUNT(*) as total FROM trabajadores WHERE tipo_documento = 'Pensión Alimenticia'AND inhabilitado = 0")->fetch(PDO::FETCH_ASSOC)['total'];
 
 include 'includes/header.php';
 ?>
