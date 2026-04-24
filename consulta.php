@@ -2,8 +2,21 @@
 include 'seguridad.php';
 include 'conexion.php';
 
-$sql      = "SELECT * FROM trabajadores ORDER BY inhabilitado ASC, fecha_registro DESC";
-$resultado = $conexion->query($sql);
+$porPagina = 15;
+$paginaActual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+$offset = ($paginaActual - 1) * $porPagina;
+
+$sqlCount = "SELECT COUNT(*) as total FROM trabajadores";
+$totalResult = $conexion->query($sqlCount);
+$totalRow = $totalResult->fetch(PDO::FETCH_ASSOC);
+$totalRegistros = $totalRow['total'];
+$totalPaginas = ceil($totalRegistros / $porPagina);
+
+$sql = "SELECT * FROM trabajadores ORDER BY inhabilitado ASC, fecha_registro DESC LIMIT :limit OFFSET :offset";
+$resultado = $conexion->prepare($sql);
+$resultado->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+$resultado->bindValue(':offset', $offset, PDO::PARAM_INT);
+$resultado->execute();
 
 include 'includes/header.php';
 ?>
@@ -202,8 +215,33 @@ include 'includes/header.php';
                     </table>
                 </div>
             </div>
-            <div class="card-footer bg-white text-muted small">
-                Base de datos local — <span id="contadorRegistros"></span>
+            <div class="card-footer bg-white">
+                <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
+                    <div class="text-muted small">
+                        Base de datos local — <span id="contadorRegistros"></span>
+                    </div>
+                    <?php if ($totalPaginas > 1): ?>
+                    <nav aria-label="Paginación">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item <?php echo $paginaActual <= 1 ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="?pagina=<?php echo $paginaActual - 1; ?>">«</a>
+                            </li>
+                            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                                <?php if ($i == 1 || $i == $totalPaginas || ($i >= $paginaActual - 1 && $i <= $paginaActual + 1)): ?>
+                                    <li class="page-item <?php echo $i == $paginaActual ? 'active' : ''; ?>">
+                                        <a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                    </li>
+                                <?php elseif ($i == $paginaActual - 2 || $i == $paginaActual + 2): ?>
+                                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                                <?php endif; ?>
+                            <?php endfor; ?>
+                            <li class="page-item <?php echo $paginaActual >= $totalPaginas ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="?pagina=<?php echo $paginaActual + 1; ?>">»</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
@@ -293,7 +331,8 @@ function aplicarFiltros() {
         fila.style.display = mostrar ? '' : 'none';
         if (mostrar) visibles++;
     });
-    if (contador) contador.textContent = visibles + ' registro' + (visibles !== 1 ? 's' : '') + ' visible' + (visibles !== 1 ? 's' : '');
+    const total = <?php echo $totalRegistros; ?>;
+    if (contador) contador.textContent = visibles + ' de ' + total + ' registro' + (total !== 1 ? 's' : '') + ' visible' + (total !== 1 ? 's' : '');
 }
 
 inputBusqueda.addEventListener('keyup', aplicarFiltros);
