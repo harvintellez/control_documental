@@ -118,6 +118,9 @@ include 'includes/header.php';
         <?php if(isset($error_msg)): ?>
             <div class="alert alert-danger"><?php echo htmlspecialchars($error_msg); ?></div>
         <?php endif; ?>
+        <?php if(isset($_GET['res']) && $_GET['res'] === 'archivo_eliminado'): ?>
+            <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i>Archivo eliminado correctamente.<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <?php endif; ?>
         <div class="card shadow border-0">
             <div class="card-header bg-warning py-3">
                 <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-pencil-square me-2"></i>Editar Registro: <?php echo $codigo; ?></h5>
@@ -174,7 +177,10 @@ include 'includes/header.php';
                             <input type="file" name="foto_perfil" class="form-control" accept=".jpg,.jpeg,.png">
                             <div class="form-text small">Dejar en blanco para mantener la fotografía actual.</div>
                             <?php if(!empty($foto_actual)): ?>
-                                <div class="mt-2 text-success small"><i class="bi bi-check-circle me-1"></i>Tiene foto adjunta</div>
+                                <div class="mt-2 d-flex align-items-center gap-2">
+                                    <div class="text-success small"><i class="bi bi-check-circle me-1"></i>Tiene foto adjunta</div>
+                                    <a href="eliminar_archivo.php?id=<?php echo $id; ?>&tipo=foto" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar la fotografía?');"><i class="bi bi-trash"></i> Eliminar</a>
+                                </div>
                             <?php endif; ?>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -182,7 +188,10 @@ include 'includes/header.php';
                             <input type="file" name="archivo_oficio" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
                             <div class="form-text small">Dejar en blanco para mantener el documento actual.</div>
                             <?php if(!empty($doc_actual)): ?>
-                                <div class="mt-2 text-success small"><i class="bi bi-check-circle me-1"></i>Tiene documento adjunto</div>
+                                <div class="mt-2 d-flex align-items-center gap-2">
+                                    <div class="text-success small"><i class="bi bi-check-circle me-1"></i>Tiene documento adjunto</div>
+                                    <a href="eliminar_archivo.php?id=<?php echo $id; ?>&tipo=documento" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar el documento?');"><i class="bi bi-trash"></i> Eliminar</a>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
