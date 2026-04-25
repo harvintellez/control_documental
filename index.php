@@ -57,7 +57,7 @@
                     </div>
                 </form>
             </div>
-            <p class="text-center mt-4 text-white-50 small">&copy; 2026 Sistema de Control Documental</p>
+            <p class="text-center mt-4 text-white-50 small">&copy; 2026 Sistema de Control Documental by HTellez</p>
         </div>
     </div>
 </div>
