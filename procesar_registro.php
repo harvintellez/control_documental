@@ -16,6 +16,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
+    // Verificar si ya existe registro con mismo código o cédula
+    $stmt_existe = $conexion->prepare("SELECT COUNT(*), codigo_trabajador, nombre_completo, cedula FROM trabajadores WHERE codigo_trabajador = :codigo OR cedula = :cedula");
+    $stmt_existe->bindParam(':codigo', $codigo);
+    $stmt_existe->bindParam(':cedula', $cedula);
+    $stmt_existe->execute();
+    $existe = $stmt_existe->fetch(PDO::FETCH_ASSOC);
+    if ($existe && $existe['COUNT(*)'] > 0) {
+        // Guardar datos en sesión para confirmación
+        $_SESSION['registro_duplicado'] = [
+            'codigo' => $codigo,
+            'cedula' => $cedula,
+            'nombre' => $nombre,
+            'tipo' => $tipo,
+            'descripcion' => $descripcion,
+            'valor_inicial' => $_POST['valor_inicial'] ?? '',
+            'valor_final' => $_POST['valor_final'] ?? '',
+            'existente' => [
+                'codigo' => $existe['codigo_trabajador'],
+                'nombre' => $existe['nombre_completo'],
+                'cedula' => $existe['cedula']
+            ]
+        ];
+        
+        // Mover archivos a carpeta temporal para conservarlos
+        $dir_temp = "uploads/temp/";
+        if (!file_exists($dir_temp)) { mkdir($dir_temp, 0755, true); }
+        
+        $temp_archivos = [];
+        if (isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'] == UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($_FILES['foto_perfil']['name'], PATHINFO_EXTENSION));
+            $temp_archivos['foto'] = $dir_temp . "foto_" . session_id() . "." . $ext;
+            move_uploaded_file($_FILES['foto_perfil']['tmp_name'], $temp_archivos['foto']);
+        }
+        if (isset($_FILES['archivo_oficio']) && $_FILES['archivo_oficio']['error'] == UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($_FILES['archivo_oficio']['name'], PATHINFO_EXTENSION));
+            $temp_archivos['doc'] = $dir_temp . "doc_" . session_id() . "." . $ext;
+            move_uploaded_file($_FILES['archivo_oficio']['tmp_name'], $temp_archivos['doc']);
+        }
+        $_SESSION['archivos_temp'] = $temp_archivos;
+        
+        header("Location: confirma_registro.php");
+        exit();
+    }
+
     // Validar valores numéricos si están presentes
     $valor_inicial = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final   = !empty($_POST['valor_final'])   ? floatval($_POST['valor_final'])   : null;

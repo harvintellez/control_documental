@@ -8,6 +8,7 @@ include 'includes/header.php';
         <?php
         $errores_mapa = [
             'campos_vacios'      => '<i class="bi bi-exclamation-circle me-2"></i>Faltan campos obligatorios (Código, Nombre o Cédula).',
+            'duplicado'           => '<i class="bi bi-exclamation-triangle me-2"></i>Ya existe un registro con ese Código o Cédula. Verifique los datos e intente de nuevo.',
             'foto_grande'        => '<i class="bi bi-image me-2"></i>La fotografía supera el límite de 5 MB permitido.',
             'doc_grande'         => '<i class="bi bi-file-earmark me-2"></i>El documento supera el límite de 5 MB permitido.',
             'tipo_foto_invalido' => '<i class="bi bi-shield-x me-2"></i>Tipo de archivo de foto no permitido. Solo se acepta JPG o PNG.',
