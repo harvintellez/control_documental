@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso al Sistema - Control Documental de NSEL-CLNSA</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet"> 
+<link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/isa-colors.css" rel="stylesheet">
     <link rel="stylesheet" href="font/bootstrap-icons.css"> 
     <style>
         body {
-            background: linear-gradient(135deg, #0d6efd 0%, #003d99 100%);
+            background: linear-gradient(135deg, #1d9140 0%, #0d5a2a 100%);
             height: 100vh;
             display: flex;
             align-items: center;
@@ -29,7 +30,7 @@
         <div class="col-md-5 col-lg-4">
             <div class="card login-card p-4">
                 <div class="text-center mb-4">
-                    <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+                    <img src="img/isa-logo.png" alt="ISA Logo" style="max-height: 60px;" class="mb-3">
                     <h3 class="fw-bold">Bienvenido</h3>
                     <p class="text-muted">Inicia sesión para gestionar documentos</p>
                 </div>

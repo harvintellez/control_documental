@@ -10,6 +10,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <title>NSEL-CLNSA - Sistema de Control Documental</title>
     <!-- Referencias locales para modo Offline -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/isa-colors.css" rel="stylesheet">
     <link rel="stylesheet" href="font/bootstrap-icons.css">
     <style>
         body { background-color: #f8f9fa; }
@@ -22,7 +23,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow mb-4">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="panel.php"><i class="bi bi-briefcase-fill me-2"></i>Sistema de Control Documental NSEL-CLNSA</a>
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="panel.php">
+            <img src="img/isa-logo.png" alt="ISA" style="max-height: 35px;" class="me-2">
+            <span>Control Documental</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>

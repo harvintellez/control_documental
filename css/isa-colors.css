@@ -1,0 +1,105 @@
+/* ISA Color Palette - Control Documental */
+:root {
+    /* Primary ISA Green */
+    --isa-primary: #1d9140;
+    --isa-primary-dark: #157a33;
+    --isa-primary-light: #2eb859;
+    
+    /* Bootstrap overrides */
+    --bs-primary: #1d9140;
+    --bs-primary-rgb: 29, 145, 64;
+    --bs-secondary: #6c757d;
+    --bs-success: #1d9140;
+    --bs-info: #0dcaf0;
+    --bs-warning: #ffc107;
+    --bs-danger: #dc3545;
+    --bs-light: #f8f9fa;
+    --bs-dark: #212529;
+}
+
+/* Navbar ISA Green */
+.navbar-dark {
+    background: linear-gradient(90deg, #1d9140 0%, #157a33 100%) !important;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #1d9140;
+    border-color: #1d9140;
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #157a33;
+    border-color: #157a33;
+}
+.btn-check:focus + .btn-primary, .btn-primary:focus {
+    box-shadow: 0 0 0 0.25rem rgba(29, 145, 64, 0.25);
+}
+
+/* Links */
+a {
+    color: #1d9140;
+}
+a:hover {
+    color: #157a33;
+}
+
+/* Cards header */
+.card-header.bg-primary {
+    background: linear-gradient(90deg, #1d9140 0%, #157a33 100%) !important;
+    border-bottom: 3px solid #0d5a2a;
+}
+.card-header.bg-warning {
+    background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%) !important;
+}
+
+/* Form controls focus */
+.form-control:focus, .form-select:focus {
+    border-color: #1d9140;
+    box-shadow: 0 0 0 0.25rem rgba(29, 145, 64, 0.25);
+}
+
+/* Table headers */
+.table thead th {
+    background-color: #1d9140;
+    color: white;
+}
+
+/* Active nav links */
+.nav .nav-link.active, .nav-pills .nav-link.active {
+    background-color: #1d9140;
+}
+
+/* Badge */
+.bg-success {
+    background-color: #1d9140 !important;
+}
+
+/* Alert */
+.alert-success {
+    border-left: 4px solid #1d9140;
+}
+
+/* Dropdown */
+.dropdown-menu {
+    border: 1px solid #1d9140;
+}
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: #1d9140;
+    color: white;
+}
+
+/* Page active items */
+.list-group-item.active {
+    background-color: #1d9140;
+    border-color: #1d9140;
+}
+
+/* Border utilities */
+.border-primary {
+    border-color: #1d9140 !important;
+}
+
+/* Text utilities */
+.text-primary {
+    color: #1d9140 !important;
+}
