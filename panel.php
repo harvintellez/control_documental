@@ -41,7 +41,7 @@ include 'includes/header.php';
                         <h6 class="text-uppercase">Embargos Judiciales</h6>
                         <h2 class="display-4 fw-bold"><?php echo $total_embargos; ?></h2>
                     </div>
-                    <i class="bi bi-gavel opacity-50" style="font-size: 3.5rem;"></i>
+                    <i class="bi bi-bank opacity-50" style="font-size: 3.5rem;"></i>
                 </div>
             </div>
         </div>
@@ -55,7 +55,7 @@ include 'includes/header.php';
                         <h6 class="text-uppercase">Otros Embargos</h6>
                         <h2 class="display-4 fw-bold"><?php echo $total_otros; ?></h2>
                     </div>
-                    <i class="bi bi-gavel opacity-50" style="font-size: 3.5rem;"></i>
+                    <i class="bi bi-cash-coin opacity-50" style="font-size: 3.5rem;"></i>
                 </div>
             </div>
         </div>
