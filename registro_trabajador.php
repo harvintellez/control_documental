@@ -27,7 +27,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Código del Trabajador</label>
-                                <input type="text" name="codigo" class="form-control" placeholder="Ej: TR-001" required>
+                                <input type="text" name="codigo" class="form-control" placeholder="Ej: 352432" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Cédula de Identidad</label>

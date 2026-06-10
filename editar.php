@@ -37,7 +37,7 @@ if (isset($_POST['actualizar'])) {
     $valor_inicial_nuevo = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final_nuevo = !empty($_POST['valor_final']) ? floatval($_POST['valor_final']) : null;
 
-    $max_size = 5 * 1024 * 1024;
+    $max_size = 10 * 1024 * 1024;
     $dir_fotos = "uploads/fotos/";
     $dir_docs  = "uploads/documentos/";
     
@@ -206,4 +206,4 @@ include 'includes/header.php';
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

@@ -10,7 +10,7 @@ include 'includes/header.php';
             'campos_vacios'      => '<i class="bi bi-exclamation-circle me-2"></i>Faltan campos obligatorios (Código, Nombre o Cédula).',
             'duplicado'           => '<i class="bi bi-exclamation-triangle me-2"></i>Ya existe un registro con ese Código o Cédula. Verifique los datos e intente de nuevo.',
             'foto_grande'        => '<i class="bi bi-image me-2"></i>La fotografía supera el límite de 5 MB permitido.',
-            'doc_grande'         => '<i class="bi bi-file-earmark me-2"></i>El documento supera el límite de 5 MB permitido.',
+            'doc_grande'         => '<i class="bi bi-file-earmark me-2"></i>El documento supera el límite de 10 MB permitido.',
             'tipo_foto_invalido' => '<i class="bi bi-shield-x me-2"></i>Tipo de archivo de foto no permitido. Solo se acepta JPG o PNG.',
             'tipo_doc_invalido'  => '<i class="bi bi-shield-x me-2"></i>Tipo de archivo de documento no permitido. Solo se acepta PDF, JPG o PNG.',
             'db'                 => '<i class="bi bi-database-x me-2"></i>Ocurrió un error al guardar el registro. Intente de nuevo.',
@@ -33,11 +33,11 @@ include 'includes/header.php';
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Código del Trabajador</label>
-                            <input type="text" name="codigo" class="form-control" placeholder="Ej: TR-502" required>
+                            <input type="text" name="codigo" class="form-control" placeholder="Ej: 352432" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Cédula de Identidad</label>
-                            <input type="text" name="cedula" class="form-control" placeholder="001-000000-0000X" required>
+                            <input type="text" name="cedula" class="form-control" placeholder="001-061281-0000X" required>
                         </div>
                     </div>
 
