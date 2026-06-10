@@ -64,8 +64,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $valor_inicial = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final   = !empty($_POST['valor_final'])   ? floatval($_POST['valor_final'])   : null;
 
-    // Tamaño máximo permitido: 5 MB
-    $max_size = 5 * 1024 * 1024;
+    // Tamaño máximo permitido: 10 MB
+    $max_size = 10 * 1024 * 1024;
 
     // 2. Definir carpetas de destino
     $dir_fotos = "uploads/fotos/";
@@ -155,4 +155,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     header("Location: registro.php");
     exit();
 }
-?>
+?>
