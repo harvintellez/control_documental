@@ -39,8 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final) 
-                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final)";
+        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final, usuario_registro) 
+                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final, :usuario_registro)";
         $stmt = $conexion->prepare($sql);
         
         $stmt->bindParam(':codigo',       $codigo);
@@ -52,6 +52,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':tipo',         $tipo);
         $stmt->bindParam(':valor_inicial',$valor_inicial);
         $stmt->bindParam(':valor_final',  $valor_final);
+
+        // Registrar usuario que realizó la acción
+        $usuario_registro = $_SESSION['usuario'] ?? null;
+        if ($usuario_registro === null) {
+            $usuario_registro = $_SESSION['usuario_id'] ?? null;
+        }
+        $stmt->bindParam(':usuario_registro', $usuario_registro);
 
         if ($stmt->execute()) {
             unset($_SESSION['registro_duplicado'], $_SESSION['archivos_temp']);

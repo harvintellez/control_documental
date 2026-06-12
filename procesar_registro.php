@@ -64,8 +64,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $valor_inicial = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final   = !empty($_POST['valor_final'])   ? floatval($_POST['valor_final'])   : null;
 
-    // Tamaño máximo permitido: 10 MB
-    $max_size = 10 * 1024 * 1024;
+    // Tamaño máximo permitido: 15 MB
+    $max_size = 15 * 1024 * 1024;
 
     // 2. Definir carpetas de destino
     $dir_fotos = "uploads/fotos/";
@@ -127,8 +127,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 5. Insertar en la Base de Datos con PDO (Sentencia Preparada)
     try {
-        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final) 
-                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final)";
+        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final, usuario_registro) 
+                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final, :usuario_registro)";
         $stmt = $conexion->prepare($sql);
         
         $stmt->bindParam(':codigo',       $codigo);
@@ -140,6 +140,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':tipo',         $tipo);
         $stmt->bindParam(':valor_inicial',$valor_inicial);
         $stmt->bindParam(':valor_final',  $valor_final);
+
+        // Registrar usuario que realizó la acción
+        $usuario_registro = $_SESSION['usuario'] ?? null;
+        if ($usuario_registro === null) {
+            $usuario_registro = $_SESSION['usuario_id'] ?? null;
+        }
+        $stmt->bindParam(':usuario_registro', $usuario_registro);
+
 
         if ($stmt->execute()) {
             header("Location: consulta.php?res=ok");

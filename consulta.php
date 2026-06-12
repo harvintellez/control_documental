@@ -1,8 +1,11 @@
 <?php
 include 'seguridad.php';
 include 'conexion.php';
+?>
 
+<?php
 $porPagina = 15;
+
 $paginaActual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
 $offset = ($paginaActual - 1) * $porPagina;
 
@@ -117,11 +120,31 @@ include 'includes/header.php';
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
+<tbody>
                         <?php if ($resultado->rowCount() > 0): ?>
                             <?php while ($row = $resultado->fetch(PDO::FETCH_ASSOC)): ?>
                             <?php $inh = (bool)$row['inhabilitado']; ?>
-                            <tr class="<?php echo $inh ? 'table-secondary' : ''; ?>" data-inhabilitado="<?php echo $inh ? '1' : '0'; ?>">
+                            <tr class="<?php echo $inh ? 'table-secondary' : ''; ?>" 
+                                data-inhabilitado="<?php echo $inh ? '1' : '0'; ?>"
+                                data-codigo="<?php echo htmlspecialchars($row['codigo_trabajador'] ?? ''); ?>"
+                                data-nombre="<?php echo htmlspecialchars($row['nombre_completo'] ?? ''); ?>"
+                                data-cedula="<?php echo htmlspecialchars($row['cedula'] ?? ''); ?>"
+                                data-foto="<?php echo htmlspecialchars($row['foto_perfil'] ?? ''); ?>"
+                                data-descripcion="<?php echo htmlspecialchars($row['descripcion_oficio'] ?? ''); ?>"
+                                data-archivo="<?php echo htmlspecialchars($row['archivo_adjunto'] ?? ''); ?>"
+                                data-tipo="<?php echo htmlspecialchars($row['tipo_documento'] ?? ''); ?>"
+                                data-fecha-registro="<?php echo htmlspecialchars($row['fecha_registro'] ?? ''); ?>"
+                                data-valor-inicial="<?php echo htmlspecialchars($row['valor_inicial'] ?? ''); ?>"
+                                data-valor-final="<?php echo htmlspecialchars($row['valor_final'] ?? ''); ?>"
+                                data-usuarioRegistro="<?php echo htmlspecialchars($row['usuario_registro'] ?? ''); ?>"
+                                data-nombreAdjunto="<?php echo htmlspecialchars($row['archivo_adjunto'] ?? ''); ?>"
+                                data-inhabilitado="<?php echo $inh ? '1' : '0'; ?>"
+ondblclick="abrirModalTrabajadorConsulta(this)"
+                                style="cursor:pointer;">
+                                <!-- Nota: mantener ondblclick para abrir modal -->
+                                <?php
+                                    $idRow = $row['id'] ?? '';
+                                ?>
                                 <td class="ps-3">
                                     <?php if (!empty($row['foto_perfil'])): ?>
                                         <img src="<?php echo htmlspecialchars($row['foto_perfil']); ?>"
@@ -132,6 +155,7 @@ include 'includes/header.php';
                                     <?php endif; ?>
                                 </td>
                                 <td><span class="badge bg-secondary"><?php echo htmlspecialchars($row['codigo_trabajador']); ?></span></td>
+
                                 <td>
                                     <div class="fw-bold <?php echo $inh ? 'text-decoration-line-through text-muted' : ''; ?>">
                                         <?php echo htmlspecialchars($row['nombre_completo']); ?>
@@ -146,8 +170,7 @@ include 'includes/header.php';
                                         <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Activo</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-center">
-                                    <div class="btn-group flex-wrap gap-1">
+<td class="text-center" onclick="event.stopPropagation();">
                                         <?php if (!empty($row['archivo_adjunto'])): ?>
                                             <a href="<?php echo htmlspecialchars($row['archivo_adjunto']); ?>"
                                                target="_blank" class="btn btn-sm btn-info text-white" title="Ver Documento Original">
@@ -291,7 +314,74 @@ include 'includes/header.php';
 </div>
 
 <!-- ===== MODAL: Ver Inhabilitación ===== -->
+
+<!-- ===== MODAL: Ver Trabajador (igual que buscar_trabajadores.php) ===== -->
+<div class="modal fade" id="modalVerTrabajador" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-lines-fill me-2"></i>
+                    Detalle del Trabajador
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-3 text-center">
+                        <div id="fotoModal" class="rounded-circle mx-auto mb-2 bg-light p-2 d-flex align-items-center justify-content-center overflow-hidden" style="width:100px;height:100px;">
+                            <i class="bi bi-person-circle text-secondary" style="font-size:3.5rem;"></i>
+                        </div>
+                        <div class="small" id="estadoModal">Cargando...</div>
+                    </div>
+                    <div class="col-md-9">
+                        <h5 class="fw-bold mb-1" id="nombreModal">—</h5>
+                        <span class="badge bg-secondary fs-6 mb-2" id="codigoModal">—</span>
+                        <div class="mb-2">
+                            <small class="text-muted">Cédula:</small>
+                            <span class="fw-semibold ms-1" id="cedulaModal">—</span>
+                        </div>
+                        <div id="documentoModal" class="mb-2"></div>
+                    </div>
+                </div>
+                <hr>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Tipo Documento:</dt>
+                    <dd class="col-sm-8" id="tipoModal">—</dd>
+
+                    <dt class="col-sm-4">Fecha Registro:</dt>
+                    <dd class="col-sm-8" id="fechaRegistroModal">—</dd>
+
+                    <dt class="col-sm-4">Usuario Registro:</dt>
+                    <dd class="col-sm-8" id="usuarioRegistroModal">—</dd>
+
+                    <dt class="col-sm-4">Nombre Adjunto:</dt>
+                    <dd class="col-sm-8" id="nombreAdjuntoModal">—</dd>
+
+                    <dt class="col-sm-4">Valor Inicial:</dt>
+                    <dd class="col-sm-8" id="valorInicialModal">—</dd>
+
+                    <dt class="col-sm-4">Valor Final:</dt>
+                    <dd class="col-sm-8" id="valorFinalModal">—</dd>
+                </dl>
+                <div class="mt-4 p-3 bg-light rounded border">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-card-text me-2"></i>Descripción del Oficio</h6>
+                    <div id="descripcionModal" class="small" style="white-space:pre-wrap;max-height:200px;overflow-y:auto;">—</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+
+                    <i class="bi bi-x-circle me-1"></i>Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL: Ver Inhabilitación ===== -->
 <div class="modal fade" id="modalVerInh" tabindex="-1" aria-hidden="true">
+
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-secondary text-white">
@@ -319,6 +409,64 @@ const btnLimpiar    = document.getElementById('btnLimpiar');
 const switchInh     = document.getElementById('mostrarInhabilitados');
 const allFilas      = document.querySelectorAll('#tablaTrabajadores tbody tr[data-inhabilitado]');
 const contador      = document.getElementById('contadorRegistros');
+
+function abrirModalTrabajador(fila) {
+    const modalEl = document.getElementById('modalVerTrabajador');
+    const modal = new bootstrap.Modal(modalEl);
+
+    document.getElementById('codigoModal').textContent = fila.dataset.codigo || '—';
+    document.getElementById('nombreModal').textContent = fila.dataset.nombre || '—';
+    document.getElementById('cedulaModal').textContent = fila.dataset.cedula || '—';
+    document.getElementById('tipoModal').textContent = fila.dataset.tipo || '—';
+    document.getElementById('fechaRegistroModal').textContent = fila.dataset.fechaRegistro ? new Date(fila.dataset.fechaRegistro).toLocaleString('es-NI') : '—';
+    document.getElementById('usuarioRegistroModal').textContent = fila.dataset.usuarioRegistro || '—';
+    document.getElementById('nombreAdjuntoModal').textContent = fila.dataset.nombreAdjunto || '—';
+
+    document.getElementById('valorInicialModal').textContent = fila.dataset.valorInicial && !isNaN(fila.dataset.valorInicial)
+        ? 'C$ ' + parseFloat(fila.dataset.valorInicial).toFixed(2)
+        : '—';
+
+    document.getElementById('valorFinalModal').textContent = fila.dataset.valorFinal && !isNaN(fila.dataset.valorFinal)
+        ? 'C$ ' + parseFloat(fila.dataset.valorFinal).toFixed(2)
+        : '—';
+
+    document.getElementById('descripcionModal').textContent = fila.dataset.descripcion || 'Sin descripción';
+
+    const foto = fila.dataset.foto;
+    const fotoEl = document.getElementById('fotoModal');
+    if (foto) {
+        fotoEl.innerHTML = `<img src="${foto}" class="rounded-circle w-100 h-100" style="object-fit:cover;">`;
+    } else {
+        fotoEl.innerHTML = '<i class="bi bi-person-circle text-secondary" style="font-size:3.5rem;"></i>';
+    }
+
+    const inh = fila.dataset.inhabilitado === '1';
+    document.getElementById('estadoModal').innerHTML = inh
+        ? '<span class="badge bg-danger"><i class="bi bi-slash-circle me-1"></i>Inhabilitado</span>'
+        : '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Activo</span>';
+
+    const archivo = fila.dataset.archivo;
+    const docEl = document.getElementById('documentoModal');
+
+    // Nota: en esta vista NO existe el elemento #btnVerDocumentoModal,
+    // por lo que se evita manipularlo (ver error en consola).
+    if (archivo) {
+        docEl.innerHTML = `
+            <a href="${archivo}" target="_blank" class="btn btn-sm btn-info text-white">
+                <i class="bi bi-file-earmark-pdf me-1"></i>Ver Documento Adjunto
+            </a>
+            <span class="text-muted small ms-2">${archivo.split('/').pop()}</span>
+        `;
+    } else {
+        docEl.innerHTML = '<span class="text-muted small"><i class="bi bi-file-earmark-x me-1"></i>Sin documento adjunto</span>';
+    }
+
+    modal.show();
+}
+
+function abrirModalTrabajadorConsulta(fila) {
+    return abrirModalTrabajador(fila);
+}
 
 function aplicarFiltros() {
     const filtro = inputBusqueda.value.toLowerCase();
@@ -363,3 +511,4 @@ document.querySelectorAll('.btn-ver-inh').forEach(btn => {
 </script>
 
 <?php include 'includes/footer.php'; ?>
+

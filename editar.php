@@ -81,14 +81,15 @@ if (isset($_POST['actualizar'])) {
     }
 
     $update_query = "UPDATE trabajadores SET 
-        nombre_completo = :nombre, 
-        cedula = :cedula, 
+        nombre_completo = :nombre,
+        cedula = :cedula,
         descripcion_oficio = :descripcion,
         tipo_documento = :tipo,
         valor_inicial = :valor_inicial,
         valor_final = :valor_final,
         foto_perfil = :foto,
-        archivo_adjunto = :doc
+        archivo_adjunto = :doc,
+        usuario_registro = :usuario_registro
         WHERE id = :id";
         
     $stmt_update = $conexion->prepare($update_query);
@@ -100,6 +101,14 @@ if (isset($_POST['actualizar'])) {
     $stmt_update->bindParam(':valor_final', $valor_final_nuevo);
     $stmt_update->bindParam(':foto', $ruta_foto_bd);
     $stmt_update->bindParam(':doc', $ruta_doc_bd);
+
+    // Registrar usuario que realizó la acción
+    $usuario_registro = $_SESSION['usuario'] ?? null;
+    if ($usuario_registro === null) {
+        $usuario_registro = $_SESSION['usuario_id'] ?? null;
+    }
+    $stmt_update->bindParam(':usuario_registro', $usuario_registro);
+
     $stmt_update->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($stmt_update->execute()) {
