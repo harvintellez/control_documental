@@ -103,10 +103,7 @@ if (isset($_POST['actualizar'])) {
     $stmt_update->bindParam(':doc', $ruta_doc_bd);
 
     // Registrar usuario que realizó la acción
-    $usuario_registro = $_SESSION['usuario'] ?? null;
-    if ($usuario_registro === null) {
-        $usuario_registro = $_SESSION['usuario_id'] ?? null;
-    }
+    $usuario_registro = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
     $stmt_update->bindParam(':usuario_registro', $usuario_registro);
 
     $stmt_update->bindParam(':id', $id, PDO::PARAM_INT);

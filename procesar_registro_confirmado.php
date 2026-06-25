@@ -54,10 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':valor_final',  $valor_final);
 
         // Registrar usuario que realizó la acción
-        $usuario_registro = $_SESSION['usuario'] ?? null;
-        if ($usuario_registro === null) {
-            $usuario_registro = $_SESSION['usuario_id'] ?? null;
-        }
+        $usuario_registro = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
         $stmt->bindParam(':usuario_registro', $usuario_registro);
 
         if ($stmt->execute()) {

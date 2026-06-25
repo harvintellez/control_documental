@@ -8,18 +8,41 @@ $porPagina = 15;
 
 $paginaActual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
 $offset = ($paginaActual - 1) * $porPagina;
+$busqueda = trim($_GET['busqueda'] ?? '');
+$whereSql = '';
+if ($busqueda !== '') {
+    $whereSql = "WHERE t.codigo_trabajador LIKE :busqueda1 OR t.nombre_completo LIKE :busqueda2 OR t.cedula LIKE :busqueda3";
+}
 
-$sqlCount = "SELECT COUNT(*) as total FROM trabajadores";
-$totalResult = $conexion->query($sqlCount);
+$sqlCount = "SELECT COUNT(*) as total FROM trabajadores t $whereSql";
+$totalResult = $conexion->prepare($sqlCount);
+if ($busqueda !== '') {
+    $totalResult->bindValue(':busqueda1', '%' . $busqueda . '%', PDO::PARAM_STR);
+    $totalResult->bindValue(':busqueda2', '%' . $busqueda . '%', PDO::PARAM_STR);
+    $totalResult->bindValue(':busqueda3', '%' . $busqueda . '%', PDO::PARAM_STR);
+}
+$totalResult->execute();
 $totalRow = $totalResult->fetch(PDO::FETCH_ASSOC);
 $totalRegistros = $totalRow['total'];
 $totalPaginas = ceil($totalRegistros / $porPagina);
 
-$sql = "SELECT * FROM trabajadores ORDER BY inhabilitado ASC, fecha_registro DESC LIMIT :limit OFFSET :offset";
+$sql = "SELECT t.*, COALESCE(u.usuario, t.usuario_registro) AS usuario_registro_display " .
+       "FROM trabajadores t " .
+       "LEFT JOIN usuarios u ON (t.usuario_registro = u.usuario OR t.usuario_registro = CAST(u.id AS CHAR)) " .
+       "$whereSql " .
+       "ORDER BY t.inhabilitado ASC, t.nombre_completo ASC " .
+       "LIMIT :limit OFFSET :offset";
 $resultado = $conexion->prepare($sql);
+if ($busqueda !== '') {
+    $resultado->bindValue(':busqueda1', '%' . $busqueda . '%', PDO::PARAM_STR);
+    $resultado->bindValue(':busqueda2', '%' . $busqueda . '%', PDO::PARAM_STR);
+    $resultado->bindValue(':busqueda3', '%' . $busqueda . '%', PDO::PARAM_STR);
+}
 $resultado->bindValue(':limit', $porPagina, PDO::PARAM_INT);
 $resultado->bindValue(':offset', $offset, PDO::PARAM_INT);
 $resultado->execute();
+
+$queryParams = $busqueda !== '' ? 'busqueda=' . urlencode($busqueda) . '&' : '';
 
 include 'includes/header.php';
 ?>
@@ -89,11 +112,12 @@ include 'includes/header.php';
                         <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-list-check me-2"></i>Listado de Embargos</h5>
                     </div>
                     <div class="col-md-5">
-                        <div class="input-group">
+                        <form id="busquedaForm" method="get" action="consulta.php" class="input-group">
                             <span class="input-group-text bg-primary text-white border-primary"><i class="bi bi-search"></i></span>
-                            <input type="text" id="inputBusqueda" class="form-control border-primary" placeholder="Filtrar por nombre, cédula o código...">
+                            <input type="text" name="busqueda" id="inputBusqueda" class="form-control border-primary" placeholder="Filtrar por nombre, cédula o código..." value="<?php echo htmlspecialchars($busqueda); ?>">
                             <button class="btn btn-outline-secondary" type="button" id="btnLimpiar"><i class="bi bi-x-lg"></i></button>
-                        </div>
+                            <button class="btn btn-primary" type="submit" title="Buscar"><i class="bi bi-search"></i></button>
+                        </form>
                     </div>
                     <div class="col-md-3 text-end">
                         <div class="form-check form-switch d-inline-flex align-items-center gap-2 mb-0">
@@ -136,8 +160,8 @@ include 'includes/header.php';
                                 data-fecha-registro="<?php echo htmlspecialchars($row['fecha_registro'] ?? ''); ?>"
                                 data-valor-inicial="<?php echo htmlspecialchars($row['valor_inicial'] ?? ''); ?>"
                                 data-valor-final="<?php echo htmlspecialchars($row['valor_final'] ?? ''); ?>"
-                                data-usuarioRegistro="<?php echo htmlspecialchars($row['usuario_registro'] ?? ''); ?>"
-                                data-nombreAdjunto="<?php echo htmlspecialchars($row['archivo_adjunto'] ?? ''); ?>"
+                                data-usuario-registro="<?php echo htmlspecialchars($row['usuario_registro_display'] ?? $row['usuario_registro'] ?? ''); ?>"
+                                data-nombre-adjunto="<?php echo htmlspecialchars($row['archivo_adjunto'] ?? ''); ?>"
                                 data-inhabilitado="<?php echo $inh ? '1' : '0'; ?>"
 ondblclick="abrirModalTrabajadorConsulta(this)"
                                 style="cursor:pointer;">
@@ -247,19 +271,19 @@ ondblclick="abrirModalTrabajadorConsulta(this)"
                     <nav aria-label="Paginación">
                         <ul class="pagination pagination-sm mb-0">
                             <li class="page-item <?php echo $paginaActual <= 1 ? 'disabled' : ''; ?>">
-                                <a class="page-link" href="?pagina=<?php echo $paginaActual - 1; ?>">«</a>
+                                <a class="page-link" href="?<?php echo $queryParams; ?>pagina=<?php echo $paginaActual - 1; ?>">«</a>
                             </li>
                             <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
                                 <?php if ($i == 1 || $i == $totalPaginas || ($i >= $paginaActual - 1 && $i <= $paginaActual + 1)): ?>
                                     <li class="page-item <?php echo $i == $paginaActual ? 'active' : ''; ?>">
-                                        <a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                        <a class="page-link" href="?<?php echo $queryParams; ?>pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
                                     </li>
                                 <?php elseif ($i == $paginaActual - 2 || $i == $paginaActual + 2): ?>
                                     <li class="page-item disabled"><span class="page-link">…</span></li>
                                 <?php endif; ?>
                             <?php endfor; ?>
                             <li class="page-item <?php echo $paginaActual >= $totalPaginas ? 'disabled' : ''; ?>">
-                                <a class="page-link" href="?pagina=<?php echo $paginaActual + 1; ?>">»</a>
+                                <a class="page-link" href="?<?php echo $queryParams; ?>pagina=<?php echo $paginaActual + 1; ?>">»</a>
                             </li>
                         </ul>
                     </nav>
@@ -419,7 +443,7 @@ function abrirModalTrabajador(fila) {
     document.getElementById('cedulaModal').textContent = fila.dataset.cedula || '—';
     document.getElementById('tipoModal').textContent = fila.dataset.tipo || '—';
     document.getElementById('fechaRegistroModal').textContent = fila.dataset.fechaRegistro ? new Date(fila.dataset.fechaRegistro).toLocaleString('es-NI') : '—';
-    document.getElementById('usuarioRegistroModal').textContent = fila.dataset.usuarioRegistro || '—';
+    document.getElementById('usuarioRegistroModal').textContent = fila.dataset.usuarioRegistro || fila.dataset.usuarioRegistro || '—';
     document.getElementById('nombreAdjuntoModal').textContent = fila.dataset.nombreAdjunto || '—';
 
     document.getElementById('valorInicialModal').textContent = fila.dataset.valorInicial && !isNaN(fila.dataset.valorInicial)

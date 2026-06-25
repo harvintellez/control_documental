@@ -81,9 +81,6 @@ if (empty($filas)) {
     exit;
 }
 
-// Verificar duplicados en base de datos
-$stmt_check = $conexion->prepare("SELECT COUNT(*) FROM trabajadores WHERE codigo_trabajador = :codigo OR cedula = :cedula");
-
 include 'includes/header.php';
 ?>
 
@@ -95,11 +92,11 @@ include 'includes/header.php';
             </div>
             <div class="card-body p-0">
                 
-                <div class="alert alert-warning m-3">
+                <div class="alert alert-info m-3">
                     <i class="bi bi-info-circle-fill me-2"></i>
                     Se encontraron <strong><?php echo count($filas); ?></strong> registros en el archivo.
-                    Revise la tabla a continuación. Los registros marcados como <strong>"Posible Duplicado"</strong> ya tienen un embargo registrado en el sistema bajo ese Código o Cédula. 
-                    Debe seleccionar explícitamente la casilla si desea forzar su carga.
+                    Todos los registros pueden cargarse incluso si pertenecen a la misma persona con otro tipo de embargo.
+                    Seleccione los registros que desea procesar y haga clic en <strong>Procesar Registros Seleccionados</strong>.
                 </div>
 
                 <form action="procesar_carga_masiva.php" method="POST">
@@ -123,23 +120,12 @@ include 'includes/header.php';
                             </thead>
                             <tbody>
                                 <?php foreach ($filas as $indice => $fila): ?>
-                                    <?php 
-                                    // Comprobar duplicado
-                                    $stmt_check->bindParam(':codigo', $fila['codigo_trabajador']);
-                                    $stmt_check->bindParam(':cedula', $fila['cedula']);
-                                    $stmt_check->execute();
-                                    $es_duplicado = $stmt_check->fetchColumn() > 0;
-                                    ?>
-                                    <tr class="<?php echo $es_duplicado ? 'table-warning' : ''; ?>">
+                                    <tr>
                                         <td class="text-center">
-                                            <input class="form-check-input check-row" type="checkbox" name="filas_a_cargar[]" value="<?php echo $indice; ?>" <?php echo $es_duplicado ? '' : 'checked'; ?>>
+                                            <input class="form-check-input check-row" type="checkbox" name="filas_a_cargar[]" value="<?php echo $indice; ?>" checked>
                                         </td>
                                         <td>
-                                            <?php if ($es_duplicado): ?>
-                                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Posible Duplicado</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Nuevo</span>
-                                            <?php endif; ?>
+                                            <span class="badge bg-secondary"><i class="bi bi-check-circle me-1"></i>Listo</span>
                                         </td>
                                         <td><strong><?php echo htmlspecialchars($fila['codigo_trabajador']); ?></strong></td>
                                         <td><?php echo htmlspecialchars($fila['nombre_completo']); ?></td>
@@ -173,19 +159,10 @@ include 'includes/header.php';
 </div>
 
 <script>
-    // Script para el checkbox de seleccionar todos (excepto los duplicados por seguridad)
+    // Script para el checkbox de seleccionar todos
     document.getElementById('checkAll').addEventListener('change', function() {
         const isChecked = this.checked;
-        const checkboxes = document.querySelectorAll('.check-row');
-        checkboxes.forEach(cb => {
-            // Si el padre de la fila tiene la clase table-warning, es duplicado
-            const isDuplicate = cb.closest('tr').classList.contains('table-warning');
-            
-            // Solo auto-chequeamos los NO duplicados. Los duplicados se deben chequear manual.
-            if (!isDuplicate || !isChecked) {
-                cb.checked = isChecked;
-            }
-        });
+        document.querySelectorAll('.check-row').forEach(cb => cb.checked = isChecked);
     });
 </script>
 

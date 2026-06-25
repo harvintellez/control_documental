@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $id     = intval($_POST['id'] ?? 0);
 $fecha  = trim($_POST['fecha_inhabilitacion'] ?? '');
 $motivo = trim($_POST['motivo_inhabilitacion'] ?? '');
-$usuario = $_SESSION['usuario_nombre'];
+$usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? 'Sistema';
 
 if (!$id || empty($fecha) || empty($motivo)) {
     header('Location: consulta.php?error=campos_vacios_inh');
