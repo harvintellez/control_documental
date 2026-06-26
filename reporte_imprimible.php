@@ -29,6 +29,33 @@ if ($tipo_filtro != 'Todos') {
 }
 $stmt->execute();
 
+$stats_sql = "SELECT tipo_documento, COUNT(*) AS cantidad FROM trabajadores WHERE DATE(fecha_registro) BETWEEN :fecha_inicio AND :fecha_fin";
+if ($tipo_filtro != 'Todos') {
+    $stats_sql .= " AND tipo_documento = :tipo_filtro";
+}
+if ($estado_filtro === 'activos') {
+    $stats_sql .= " AND inhabilitado = 0";
+} elseif ($estado_filtro === 'inhabilitados') {
+    $stats_sql .= " AND inhabilitado = 1";
+}
+$stats_sql .= " GROUP BY tipo_documento";
+$stats_stmt = $conexion->prepare($stats_sql);
+$stats_stmt->bindParam(':fecha_inicio', $fecha_inicio);
+$stats_stmt->bindParam(':fecha_fin', $fecha_fin);
+if ($tipo_filtro != 'Todos') {
+    $stats_stmt->bindParam(':tipo_filtro', $tipo_filtro);
+}
+$stats_stmt->execute();
+$stats = [
+    'Embargo Judicial' => 0,
+    'Pensión Alimenticia' => 0,
+    'Otro' => 0,
+];
+while ($row = $stats_stmt->fetch(PDO::FETCH_ASSOC)) {
+    $stats[$row['tipo_documento']] = (int)$row['cantidad'];
+}
+$total_registros = array_sum($stats);
+
 $fecha_actual = date("d/m/Y H:i");
 ?>
 <?php
@@ -104,7 +131,7 @@ include 'includes/header.php';
     </div>
 
     <div class="card p-5 shadow-sm border-0">
-        <div class="header-reporte d-flex justify-content-between align-items-start">
+        <div class="header-reporte d-flex flex-column flex-lg-row justify-content-between align-items-start gap-4">
             <div>
                 <h1 class="fw-bold text-primary mb-0"><i class="bi bi-briefcase-fill me-2"></i>SCD NSEL-CLNSA</h1>
                 <h4 class="text-secondary mb-1">Reporte de Control Documental</h4>
@@ -119,6 +146,37 @@ include 'includes/header.php';
                 <p class="mb-0"><strong>Fecha de emisión:</strong> <?php echo $fecha_actual; ?></p>
                 <p class="mb-0"><strong>Generado por:</strong> <?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></p>
             </div>
+        </div>
+
+        <div class="row mt-4 mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <h6 class="text-uppercase text-secondary mb-2">Embargo Judicial</h6>
+                        <p class="display-6 fw-bold mb-0"><?php echo $stats['Embargo Judicial']; ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <h6 class="text-uppercase text-secondary mb-2">Pensión Alimenticia</h6>
+                        <p class="display-6 fw-bold mb-0"><?php echo $stats['Pensión Alimenticia']; ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <h6 class="text-uppercase text-secondary mb-2">Otros</h6>
+                        <p class="display-6 fw-bold mb-0"><?php echo $stats['Otro']; ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3 text-end small text-muted">
+            <strong>Total registros:</strong> <?php echo $total_registros; ?>
         </div>
 
         <table class="table table-bordered table-striped align-middle mt-4">
