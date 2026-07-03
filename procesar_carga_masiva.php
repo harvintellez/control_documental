@@ -5,6 +5,7 @@ if ($_SESSION['rol'] !== 'admin') {
     exit;
 }
 include 'conexion.php';
+include 'includes/auditoria.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: carga_masiva.php');
@@ -64,6 +65,9 @@ try {
 
                 if ($stmt->execute()) {
                     $contador_insertados++;
+                    $trabajador_id = (int)$conexion->lastInsertId();
+                    $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+                    registrar_auditoria($conexion, $trabajador_id, 'CREAR', $usuario, null, null, 'Registro creado', 'Carga masiva CSV');
                 }
             }
             $indice++;

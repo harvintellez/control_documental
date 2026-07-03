@@ -1,6 +1,7 @@
 <?php
 include 'seguridad.php';
 include 'conexion.php';
+include 'includes/auditoria.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $codigo       = trim($_POST['codigo']);
@@ -58,6 +59,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':usuario_registro', $usuario_registro);
 
         if ($stmt->execute()) {
+            $trabajador_id = (int)$conexion->lastInsertId();
+            $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+            registrar_auditoria($conexion, $trabajador_id, 'CREAR', $usuario, null, null, 'Registro creado', 'Creación confirmada');
             unset($_SESSION['registro_duplicado'], $_SESSION['archivos_temp']);
             header("Location: consulta.php?res=ok");
             exit();

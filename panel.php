@@ -153,6 +153,9 @@ include 'includes/header.php';
                     <a href="reporte_imprimible.php" class="btn btn-outline-danger btn-lg px-4">
                         <i class="bi bi-file-earmark-pdf-fill me-2"></i> Generar Reporte PDF
                     </a>
+                    <a href="reporte_fechas_especiales_hoy.php" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="bi bi-calendar2-day me-2"></i>Reporte Fechas Especiales (Hoy)
+                    </a>
                 </div>
             </div>
         </div>

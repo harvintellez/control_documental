@@ -1,6 +1,7 @@
 <?php
 include 'seguridad.php';
 include 'conexion.php';
+include 'includes/auditoria.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 1. Recibir y limpiar datos - NO aplicar htmlspecialchars aquí (se aplica al mostrar, no al guardar)
@@ -22,6 +23,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validar valores numéricos si están presentes
     $valor_inicial = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final   = !empty($_POST['valor_final'])   ? floatval($_POST['valor_final'])   : null;
+
+    $fecha_especial_1 = trim($_POST['fecha_especial_1'] ?? '');
+    $fecha_especial_2 = trim($_POST['fecha_especial_2'] ?? '');
+    $condicion_especial_1 = trim($_POST['condicion_especial_1'] ?? '');
+    $condicion_especial_2 = trim($_POST['condicion_especial_2'] ?? '');
 
     // Tamaño máximo permitido: 15 MB
     $max_size = 15 * 1024 * 1024;
@@ -86,8 +92,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 5. Insertar en la Base de Datos con PDO (Sentencia Preparada)
     try {
-        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final, usuario_registro) 
-                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final, :usuario_registro)";
+        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final, usuario_registro, fecha_especial_1, fecha_especial_2, condicion_especial_1, condicion_especial_2) 
+                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final, :usuario_registro, :fecha_especial_1, :fecha_especial_2, :condicion_especial_1, :condicion_especial_2)";
         $stmt = $conexion->prepare($sql);
         
         $stmt->bindParam(':codigo',       $codigo);
@@ -106,6 +112,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
         if ($stmt->execute()) {
+            $trabajador_id = (int)$conexion->lastInsertId();
+            $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+            registrar_auditoria($conexion, $trabajador_id, 'CREAR', $usuario, null, null, 'Registro creado', 'Creación desde formulario');
             header("Location: consulta.php?res=ok");
             exit();
         }

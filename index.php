@@ -1,4 +1,17 @@
+<?php
+$errorType = $_GET['error'] ?? '';
+$oldUsuario = $_GET['usuario'] ?? '';
+$errorMessage = '';
+$focusField = 'usuario';
 
+if ($errorType === 'usuario') {
+    $errorMessage = 'Usuario no encontrado. Verifica el nombre de usuario.';
+    $focusField = 'usuario';
+} elseif ($errorType === 'password') {
+    $errorMessage = 'Contraseña incorrecta. Intenta nuevamente.';
+    $focusField = 'password';
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -34,21 +47,27 @@
                     <h3 class="fw-bold">Bienvenido</h3>
                     <p class="text-muted">Inicia sesión para gestionar documentos</p>
                 </div>
+                <?php if (!empty($errorMessage)): ?>
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <?php echo htmlspecialchars($errorMessage); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                    </div>
+                <?php endif; ?>
                 
                 <form action="validar_login.php" method="POST">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Usuario</label>
+                        <label class="form-label fw-semibold" for="usuario">Usuario</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" name="usuario" class="form-control" placeholder="Nombre de usuario" required>
+                            <input type="text" name="usuario" id="usuario" class="form-control" placeholder="Nombre de usuario" value="<?php echo htmlspecialchars($oldUsuario); ?>" required>
                         </div>
                     </div>
                     
                     <div class="mb-4">
-                        <label class="form-label fw-semibold">Contraseña</label>
+                        <label class="form-label fw-semibold" for="password">Contraseña</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-key"></i></span>
-                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                            <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
                         </div>
                     </div>
                     
@@ -63,5 +82,15 @@
 </div>
 
 <script src="js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var focusField = '<?php echo htmlspecialchars($focusField); ?>';
+        if (focusField === 'password') {
+            document.getElementById('password').focus();
+        } else {
+            document.getElementById('usuario').focus();
+        }
+    });
+</script>
 </body>
 </html>

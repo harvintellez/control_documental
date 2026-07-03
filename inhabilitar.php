@@ -5,6 +5,7 @@ if ($_SESSION['rol'] !== 'admin') {
     exit;
 }
 include 'conexion.php';
+include 'includes/auditoria.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: consulta.php');
@@ -70,6 +71,8 @@ try {
     $stmt->bindParam(':usuario', $usuario);
     $stmt->bindParam(':id',      $id, PDO::PARAM_INT);
     $stmt->execute();
+    $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+    registrar_auditoria($conexion, $id, 'INHABILITAR', $usuario, 'inhabilitado', 0, 1, 'Fecha: ' . $fecha . ' | Motivo: ' . $motivo);
     header('Location: consulta.php?res=inhabilitado');
     exit;
 } catch (PDOException $e) {

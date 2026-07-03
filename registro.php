@@ -71,6 +71,30 @@ include 'includes/header.php';
 
                     <div class="row mb-3">
                         <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha especial 1 (Opcional)</label>
+                            <input type="date" name="fecha_especial_1" class="form-control">
+                            <div class="form-text">Si aplica, ingrese la fecha especial 1.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Indicación/condición asociada a Fecha 1 (Opcional)</label>
+                            <input type="text" name="condicion_especial_1" class="form-control" placeholder="Ej: aplicar retención 50% / levantar embargo / etc.">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha especial 2 (Opcional)</label>
+                            <input type="date" name="fecha_especial_2" class="form-control">
+                            <div class="form-text">Si aplica, ingrese la fecha especial 2.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Indicación/condición asociada a Fecha 2 (Opcional)</label>
+                            <input type="text" name="condicion_especial_2" class="form-control" placeholder="Ej: aplicar cambio en VF / nueva condición / etc.">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
                             <label class="form-label fw-bold">Valor Inicial</label>
                             <div class="input-group">
                                 <span class="input-group-text">VI</span>

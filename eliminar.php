@@ -5,6 +5,7 @@ if ($_SESSION['rol'] !== 'admin') {
     exit;
 }
 include 'conexion.php';
+include 'includes/auditoria.php';
 
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
@@ -28,6 +29,8 @@ if (isset($_GET['id'])) {
     $stmt_delete->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($stmt_delete->execute()) {
+        $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+        registrar_auditoria($conexion, $id, 'ELIMINAR', $usuario, null, null, 'Registro eliminado', 'Eliminación desde consulta');
         header("Location: consulta.php?res=del");
         exit();
     } else {

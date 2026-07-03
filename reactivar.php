@@ -5,6 +5,7 @@ if ($_SESSION['rol'] !== 'admin') {
     exit;
 }
 include 'conexion.php';
+include 'includes/auditoria.php';
 
 $id = intval($_GET['id'] ?? 0);
 if (!$id) {
@@ -24,6 +25,8 @@ try {
     );
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
+    $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+    registrar_auditoria($conexion, $id, 'REACTIVAR', $usuario, 'inhabilitado', 1, 0, 'Reactivación del trabajador');
     header('Location: consulta.php?res=reactivado');
     exit;
 } catch (PDOException $e) {

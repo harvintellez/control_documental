@@ -1,10 +1,8 @@
-- [ ] Agregar modal de “Detalle del Trabajador” a `consulta.php` (misma estructura que en `buscar_trabajadores.php`).
-- [ ] Añadir `data-*` a cada fila/tr en `consulta.php` con la información del registro.
-- [x] Cambiar interacción: hacer clic en cualquier fila abre la modal.
-- [x] Ajustar JS/eventos para evitar que botones/links intercepten el click (stopPropagation donde corresponde).
-- [x] Implementar `abrirModalTrabajadorConsulta()` y/o adaptar el JS existente.
-- [x] Agregar la modal HTML `#modalVerTrabajador` en `consulta.php`.
-- [x] Agregar `data-*` faltantes al `<tr>` en `consulta.php` para poblar la modal.
+- [ ] Crear migraciones SQL para agregar columnas: fecha_especial_1, fecha_especial_2, condicion_especial_1, condicion_especial_2
+- [ ] Actualizar formulario registro.php para capturar fecha/condición 1 y 2
+- [ ] Actualizar procesar_registro.php para persistir campos en BD
+- [ ] Actualizar editar.php para mostrar/editar campos y persistirlos en UPDATE
+- [ ] Crear reporte automático por fecha de hoy (reporte_fechas_especiales_hoy.php)
+- [ ] (Opcional) Integrar acceso al reporte desde panel.php / menú
+- [ ] Probar flujo completo con BD migrada
 
-- [ ] Validar que no se rompa el filtrado y modales existentes de inhabilitación.
-- [ ] Probar manualmente: click en filas, click en botones (editar/inhibir/ver documento) y ver inhabilitación.

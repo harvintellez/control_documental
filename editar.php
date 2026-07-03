@@ -1,6 +1,7 @@
 <?php
 include 'conexion.php';
 include 'seguridad.php';
+include 'includes/auditoria.php';
 
 // 1. Obtener el ID del trabajador desde la URL
 if (isset($_GET['id'])) {
@@ -16,6 +17,10 @@ if (isset($_GET['id'])) {
         $cedula = htmlspecialchars($row['cedula']);
         $codigo = htmlspecialchars($row['codigo_trabajador']);
         $descripcion = htmlspecialchars($row['descripcion_oficio']);
+        $fecha_especial_1 = htmlspecialchars($row['fecha_especial_1'] ?? '');
+        $fecha_especial_2 = htmlspecialchars($row['fecha_especial_2'] ?? '');
+        $condicion_especial_1 = htmlspecialchars($row['condicion_especial_1'] ?? '');
+        $condicion_especial_2 = htmlspecialchars($row['condicion_especial_2'] ?? '');
         $tipo = htmlspecialchars($row['tipo_documento']);
         $valor_inicial = htmlspecialchars($row['valor_inicial']);
         $valor_final = htmlspecialchars($row['valor_final']);
@@ -80,6 +85,34 @@ if (isset($_POST['actualizar'])) {
         }
     }
 
+    $usuario_registro = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+
+    $fecha_especial_1_nuevo = trim($_POST['fecha_especial_1'] ?? '');
+    $fecha_especial_2_nuevo = trim($_POST['fecha_especial_2'] ?? '');
+    $condicion_especial_1_nuevo = trim($_POST['condicion_especial_1'] ?? '');
+    $condicion_especial_2_nuevo = trim($_POST['condicion_especial_2'] ?? '');
+
+    $campos_auditables = [
+        'nombre_completo' => $nombre_nuevo,
+        'cedula' => $cedula_nueva,
+        'descripcion_oficio' => $desc_nueva,
+        'tipo_documento' => $tipo_nuevo,
+        'valor_inicial' => $valor_inicial_nuevo,
+        'valor_final' => $valor_final_nuevo,
+        'foto_perfil' => $ruta_foto_bd,
+        'archivo_adjunto' => $ruta_doc_bd,
+        'fecha_especial_1' => $fecha_especial_1_nuevo,
+        'fecha_especial_2' => $fecha_especial_2_nuevo,
+        'condicion_especial_1' => $condicion_especial_1_nuevo,
+        'condicion_especial_2' => $condicion_especial_2_nuevo,
+        'usuario_registro' => $usuario_registro
+    ];
+
+    $stmt_prev = $conexion->prepare("SELECT nombre_completo, cedula, descripcion_oficio, tipo_documento, valor_inicial, valor_final, foto_perfil, archivo_adjunto, fecha_especial_1, fecha_especial_2, condicion_especial_1, condicion_especial_2, usuario_registro FROM trabajadores WHERE id = :id");
+    $stmt_prev->bindParam(':id', $id, PDO::PARAM_INT);
+    $stmt_prev->execute();
+    $prev = $stmt_prev->fetch(PDO::FETCH_ASSOC);
+
     $update_query = "UPDATE trabajadores SET 
         nombre_completo = :nombre,
         cedula = :cedula,
@@ -89,6 +122,10 @@ if (isset($_POST['actualizar'])) {
         valor_final = :valor_final,
         foto_perfil = :foto,
         archivo_adjunto = :doc,
+        fecha_especial_1 = :fecha_especial_1,
+        fecha_especial_2 = :fecha_especial_2,
+        condicion_especial_1 = :condicion_especial_1,
+        condicion_especial_2 = :condicion_especial_2,
         usuario_registro = :usuario_registro
         WHERE id = :id";
         
@@ -101,14 +138,23 @@ if (isset($_POST['actualizar'])) {
     $stmt_update->bindParam(':valor_final', $valor_final_nuevo);
     $stmt_update->bindParam(':foto', $ruta_foto_bd);
     $stmt_update->bindParam(':doc', $ruta_doc_bd);
+    $stmt_update->bindParam(':fecha_especial_1', $fecha_especial_1_nuevo);
+    $stmt_update->bindParam(':fecha_especial_2', $fecha_especial_2_nuevo);
+    $stmt_update->bindParam(':condicion_especial_1', $condicion_especial_1_nuevo);
+    $stmt_update->bindParam(':condicion_especial_2', $condicion_especial_2_nuevo);
 
-    // Registrar usuario que realizó la acción
-    $usuario_registro = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
     $stmt_update->bindParam(':usuario_registro', $usuario_registro);
 
     $stmt_update->bindParam(':id', $id, PDO::PARAM_INT);
 
     if ($stmt_update->execute()) {
+        $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+        foreach ($campos_auditables as $campo => $valor_nuevo) {
+            $valor_anterior = $prev[$campo] ?? null;
+            if ($valor_anterior != $valor_nuevo) {
+                registrar_auditoria($conexion, $id, 'ACTUALIZAR', $usuario, $campo, $valor_anterior, $valor_nuevo, 'Edición desde formulario');
+            }
+        }
         header("Location: consulta.php?status=success");
         exit();
     } else {
@@ -174,6 +220,28 @@ include 'includes/header.php';
                     <div class="mb-3">
                         <label class="form-label fw-bold">Descripción del Oficio</label>
                         <textarea name="descripcion" class="form-control" rows="4"><?php echo $descripcion; ?></textarea>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha especial 1 (Opcional)</label>
+                            <input type="date" name="fecha_especial_1" class="form-control" value="<?php echo $fecha_especial_1; ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Indicación/condición asociada a Fecha 1</label>
+                            <input type="text" name="condicion_especial_1" class="form-control" value="<?php echo $condicion_especial_1; ?>" placeholder="Ej: aplicar retención 50% / etc.">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha especial 2 (Opcional)</label>
+                            <input type="date" name="fecha_especial_2" class="form-control" value="<?php echo $fecha_especial_2; ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Indicación/condición asociada a Fecha 2</label>
+                            <input type="text" name="condicion_especial_2" class="form-control" value="<?php echo $condicion_especial_2; ?>" placeholder="Ej: aplicar cambio en VF / etc.">
+                        </div>
                     </div>
 
                     <div class="row mb-4 mt-4 bg-light p-3 rounded">
