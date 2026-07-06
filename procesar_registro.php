@@ -24,10 +24,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $valor_inicial = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final   = !empty($_POST['valor_final'])   ? floatval($_POST['valor_final'])   : null;
 
-    $fecha_especial_1 = trim($_POST['fecha_especial_1'] ?? '');
-    $fecha_especial_2 = trim($_POST['fecha_especial_2'] ?? '');
-    $condicion_especial_1 = trim($_POST['condicion_especial_1'] ?? '');
-    $condicion_especial_2 = trim($_POST['condicion_especial_2'] ?? '');
+    $fecha_especial_1 = !empty(trim($_POST['fecha_especial_1'] ?? '')) ? trim($_POST['fecha_especial_1']) : null;
+    $fecha_especial_2 = !empty(trim($_POST['fecha_especial_2'] ?? '')) ? trim($_POST['fecha_especial_2']) : null;
+    $condicion_especial_1 = !empty(trim($_POST['condicion_especial_1'] ?? '')) ? trim($_POST['condicion_especial_1']) : null;
+    $condicion_especial_2 = !empty(trim($_POST['condicion_especial_2'] ?? '')) ? trim($_POST['condicion_especial_2']) : null;
 
     // Tamaño máximo permitido: 15 MB
     $max_size = 15 * 1024 * 1024;
@@ -109,7 +109,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Registrar usuario que realizó la acción
         $usuario_registro = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
         $stmt->bindParam(':usuario_registro', $usuario_registro);
-
+        $stmt->bindParam(':fecha_especial_1', $fecha_especial_1);
+        $stmt->bindParam(':fecha_especial_2', $fecha_especial_2);
+        $stmt->bindParam(':condicion_especial_1', $condicion_especial_1);
+        $stmt->bindParam(':condicion_especial_2', $condicion_especial_2);
 
         if ($stmt->execute()) {
             $trabajador_id = (int)$conexion->lastInsertId();
@@ -119,8 +122,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
     } catch (PDOException $e) {
-        // Registrar el error sin exponerlo al usuario
         error_log("Error BD procesar_registro: " . $e->getMessage());
+        $_SESSION['registro_error_detalle'] = $e->getMessage();
         header("Location: registro.php?error=db");
         exit();
     }

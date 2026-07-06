@@ -128,7 +128,7 @@ include 'includes/header.php';
     </div>
 
     <div class="alert alert-info no-print" role="alert">
-        Coincidencia por aniversario MM-DD dentro de ±15 días respecto a hoy (<?php echo htmlspecialchars($hoy_mmdd); ?>).
+        Coincidencia por fechas especiales MM-DD dentro de ±15 días respecto a hoy (<?php echo htmlspecialchars($hoy_mmdd); ?>).
     </div>
 
     <table class="table table-bordered table-striped align-middle">

@@ -18,9 +18,13 @@ include 'includes/header.php';
         ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <?php echo $errores_mapa[$_GET['error']]; ?>
+                <?php if (isset($_SESSION['registro_error_detalle']) && $_GET['error'] === 'db'): ?>
+                    <div class="small mt-2"><strong>Detalle:</strong> <?php echo htmlspecialchars($_SESSION['registro_error_detalle']); ?></div>
+                <?php endif; ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
+        <?php unset($_SESSION['registro_error_detalle']); ?>
 
         <div class="card shadow">
             <div class="card-header bg-primary text-white py-3">
