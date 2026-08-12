@@ -13,10 +13,135 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <link href="css/isa-colors.css" rel="stylesheet">
     <link rel="stylesheet" href="font/bootstrap-icons.css">
     <style>
-        body { background-color: #f8f9fa; }
-        .table img { object-fit: cover; border: 1px solid #dee2e6; }
-        .btn-group .btn { margin: 0 2px; }
-        .card-header { border-bottom: none; }
+        body {
+            background: linear-gradient(180deg, #f4f7fb 0%, #eef2f7 40%, #f8f9fa 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+        .navbar-brand img {
+            max-height: 34px;
+        }
+        .card {
+            border: none;
+            border-radius: 1.2rem;
+            box-shadow: 0 1.25rem 2.5rem rgba(41, 51, 63, 0.08);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 1.75rem 3.5rem rgba(41, 51, 63, 0.16);
+        }
+        .card-header {
+            border-bottom: none;
+            background: transparent;
+        }
+        .stat-card {
+            min-height: 180px;
+        }
+        .stat-card .icon-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 1rem;
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,.18);
+        }
+        .table thead th {
+            border-bottom: 2px solid #dee2e6;
+            background: rgba(13,110,253,.08);
+            color: #374151;
+            font-weight: 600;
+        }
+        .table tbody tr {
+            transition: background-color .15s ease;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f3f6fb;
+        }
+        .table-responsive {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        .table-responsive-scroll {
+            max-height: 62vh;
+            overflow: auto;
+        }
+        .table-responsive-scroll table {
+            min-width: 1100px;
+        }
+        .btn, .btn-outline-dark {
+            transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn-outline-dark:hover {
+            background-color: #343a40;
+            color: #fff;
+        }
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .badge.bg-secondary {
+            background-color: #6c757d !important;
+        }
+        .card.bg-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #4f9bff 100%);
+        }
+        .card.bg-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #e86478 100%);
+        }
+        .card.bg-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #8b95a2 100%);
+        }
+        .card.bg-success {
+            background: linear-gradient(135deg, #198754 0%, #4bbf73 100%);
+        }
+        .dark-mode body {
+            background: #0b1220 !important;
+            color: #e2e8f0;
+        }
+        .dark-mode .navbar {
+            background-color: #07111e !important;
+            border-color: rgba(255,255,255,.08);
+        }
+        .dark-mode .card,
+        .dark-mode .table-responsive {
+            background-color: #0f172a !important;
+            color: #e2e8f0;
+            box-shadow: 0 1.25rem 2.5rem rgba(0, 0, 0, 0.4);
+        }
+        .dark-mode .card-header {
+            background: transparent;
+            border-bottom-color: rgba(226,232,240,.08);
+        }
+        .dark-mode .table thead th {
+            background: rgba(30, 64, 175, .14);
+            color: #e2e8f0;
+        }
+        .dark-mode .table-hover tbody tr:hover {
+            background-color: rgba(255,255,255,.08);
+        }
+        .dark-mode .text-muted,
+        .dark-mode .small,
+        .dark-mode .badge.bg-secondary {
+            color: #94a3b8 !important;
+        }
+        .dark-mode .btn-outline-dark {
+            color: #e2e8f0;
+            border-color: rgba(226,232,240,.35);
+        }
+        .dark-mode .btn-outline-dark:hover {
+            background-color: rgba(226,232,240,.12);
+        }
     </style>
 </head>
 <body>
