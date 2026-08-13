@@ -12,82 +12,6 @@ if ($_SESSION['rol'] !== 'admin') {
 $mensaje = "";
 $error = "";
 
-if (isset($_POST['guardar_banco'])) {
-    $nombreBanco = trim($_POST['nombre_banco'] ?? '');
-    if ($nombreBanco === '') {
-        $error = 'El nombre del banco o institución es obligatorio.';
-    } else {
-        try {
-            $stmt = $conexion->prepare("INSERT INTO configuracion_bancos (nombre, activo) VALUES (:nombre, 1) ON DUPLICATE KEY UPDATE activo = 1");
-            $stmt->execute([':nombre' => $nombreBanco]);
-            registrar_auditoria_configuracion($conexion, 'CONFIG_BANCO_AGREGAR', $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'], 'configuracion_bancos', null, $nombreBanco, 'Se agregó el banco/institución al catálogo.' );
-            $mensaje = 'Banco o institución agregada correctamente.';
-        } catch (Exception $e) {
-            $error = 'No se pudo guardar el banco: ' . $e->getMessage();
-        }
-    }
-}
-
-if (isset($_POST['eliminar_banco'])) {
-    $idBanco = isset($_POST['id_banco']) ? (int) $_POST['id_banco'] : 0;
-    if ($idBanco <= 0) {
-        $error = 'No se pudo identificar el banco a eliminar.';
-    } else {
-        try {
-            $stmt = $conexion->prepare("SELECT nombre FROM configuracion_bancos WHERE id = :id LIMIT 1");
-            $stmt->execute([':id' => $idBanco]);
-            $banco = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($banco) {
-                $stmtDelete = $conexion->prepare("DELETE FROM configuracion_bancos WHERE id = :id");
-                $stmtDelete->execute([':id' => $idBanco]);
-                registrar_auditoria_configuracion($conexion, 'CONFIG_BANCO_ELIMINAR', $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'], 'configuracion_bancos', $banco['nombre'], null, 'Se eliminó el banco/institución del catálogo.');
-                $mensaje = 'Banco o institución eliminada correctamente.';
-            }
-        } catch (Exception $e) {
-            $error = 'No se pudo eliminar el banco: ' . $e->getMessage();
-        }
-    }
-}
-
-if (isset($_POST['guardar_edicion_banco'])) {
-    $idBanco = isset($_POST['id_banco_editar']) ? (int) $_POST['id_banco_editar'] : 0;
-    $nombreBanco = trim($_POST['nombre_banco_editar'] ?? '');
-
-    if ($idBanco <= 0 || $nombreBanco === '') {
-        $error = 'La edición del banco requiere un nombre válido.';
-    } else {
-        try {
-            $stmtActual = $conexion->prepare("SELECT nombre FROM configuracion_bancos WHERE id = :id LIMIT 1");
-            $stmtActual->execute([':id' => $idBanco]);
-            $bancoActual = $stmtActual->fetch(PDO::FETCH_ASSOC);
-
-            if ($bancoActual) {
-                $stmtUpdate = $conexion->prepare("UPDATE configuracion_bancos SET nombre = :nombre WHERE id = :id");
-                $stmtUpdate->execute([
-                    ':nombre' => $nombreBanco,
-                    ':id' => $idBanco,
-                ]);
-
-                registrar_auditoria_configuracion(
-                    $conexion,
-                    'CONFIG_BANCO_EDITAR',
-                    $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'],
-                    'configuracion_bancos',
-                    $bancoActual['nombre'],
-                    $nombreBanco,
-                    'Se editó el nombre del banco/institución del catálogo.'
-                );
-
-                $mensaje = 'Banco o institución actualizada correctamente.';
-            }
-        } catch (Exception $e) {
-            $error = 'No se pudo editar el banco: ' . $e->getMessage();
-        }
-    }
-}
-
-$bancos_config = $conexion->query("SELECT id, nombre FROM configuracion_bancos WHERE activo = 1 ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
-
 // Lógica para exportar estructura y usuarios
 if (isset($_POST['descargar_sql'])) {
     try {
@@ -247,76 +171,10 @@ include 'includes/header.php';
 
                 <div class="alert alert-warning">
                     <h6 class="fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Instrucciones:</h6>
-                    <p class="mb-0">Desde esta página puede descargar la estructura actual del sistema junto con los usuarios configurados. También puede limpiar los datos de trabajadores para comenzar una nueva gestión desde cero.</p>
+                    <p class="mb-0">Desde esta página puede descargar respaldos de la base de datos, exportar la estructura del sistema y limpiar los datos para comenzar una nueva gestión desde cero.</p>
                 </div>
 
                 <div class="row g-4 mt-2">
-                    <div class="col-md-12" id="configuracion-bancos">
-                        <div class="card border-info shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <div>
-                                        <h6 class="fw-bold mb-1"><i class="bi bi-bank me-2"></i>Configuración de Bancos / Instituciones</h6>
-                                        <p class="small text-muted mb-0">Estos valores se usan cuando el tipo de embargo es judicial y solo pueden gestionarlos los administradores.</p>
-                                    </div>
-                                </div>
-
-                                <form method="POST" class="row g-2 align-items-end mb-3">
-                                    <div class="col-md-9">
-                                        <label class="form-label fw-bold">Agregar banco o institución</label>
-                                        <input type="text" name="nombre_banco" class="form-control" placeholder="Ej: Lafise Bancentro, BAC, BANPRO" required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <button type="submit" name="guardar_banco" class="btn btn-info w-100 text-white">
-                                            <i class="bi bi-plus-circle me-2"></i>Agregar
-                                        </button>
-                                    </div>
-                                </form>
-
-                                <?php if (!empty($bancos_config)): ?>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle">
-                                            <thead>
-                                                <tr>
-                                                    <th>Banco / Institución</th>
-                                                    <th class="text-end">Acción</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php foreach ($bancos_config as $banco): ?>
-                                                    <tr>
-                                                        <td class="pe-3">
-                                                            <div class="fw-semibold"><?= htmlspecialchars($banco['nombre']) ?></div>
-                                                        </td>
-                                                        <td class="text-end">
-                                                            <div class="d-flex gap-2 justify-content-end flex-wrap">
-                                                                <form method="POST" class="d-flex gap-2 align-items-center">
-                                                                    <input type="hidden" name="id_banco_editar" value="<?= (int)$banco['id'] ?>">
-                                                                    <input type="text" name="nombre_banco_editar" value="<?= htmlspecialchars($banco['nombre']) ?>" class="form-control form-control-sm" style="min-width: 220px;" required>
-                                                                    <button type="submit" name="guardar_edicion_banco" class="btn btn-sm btn-outline-primary">
-                                                                        <i class="bi bi-pencil-square me-1"></i>Guardar
-                                                                    </button>
-                                                                </form>
-                                                                <form method="POST" onsubmit="return confirm('¿Desea eliminar este banco o institución de la lista?');">
-                                                                    <input type="hidden" name="id_banco" value="<?= (int)$banco['id'] ?>">
-                                                                    <button type="submit" name="eliminar_banco" class="btn btn-sm btn-outline-danger">
-                                                                        <i class="bi bi-trash me-1"></i>Eliminar
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="alert alert-light border mb-0">No hay bancos configurados aún.</div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Sección Respaldo Total -->
                     <div class="col-md-12">
                         <div class="card border-primary shadow-sm">

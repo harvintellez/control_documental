@@ -226,7 +226,7 @@ include 'includes/header.php';
                                 <?php endforeach; ?>
                             </select>
                             <?php if (($_SESSION['rol'] ?? '') === 'admin'): ?>
-                                <a href="mantenimiento.php#configuracion-bancos" class="btn btn-outline-primary" title="Abrir configuración de bancos">
+                                <a href="configuracion_bancos.php" class="btn btn-outline-primary" title="Abrir configuración de bancos">
                                     <i class="bi bi-gear"></i>
                                 </a>
                             <?php else: ?>
