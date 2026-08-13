@@ -22,6 +22,15 @@ $documentos_por_tipo = $conexion->query(
     "SELECT tipo_documento, COUNT(*) AS total FROM trabajadores WHERE inhabilitado = 0 GROUP BY tipo_documento"
 )->fetchAll(PDO::FETCH_ASSOC);
 
+$judicial_por_banco = $conexion->query(
+    "SELECT banco_institucion, COUNT(*) AS total 
+     FROM trabajadores 
+     WHERE tipo_documento = 'Embargo Judicial' AND inhabilitado = 0 AND TRIM(COALESCE(banco_institucion, '')) <> ''
+     GROUP BY banco_institucion
+     ORDER BY total DESC, banco_institucion ASC
+     LIMIT 8"
+)->fetchAll(PDO::FETCH_ASSOC);
+
 $ultimos_registros = $conexion->query(
     "SELECT codigo_trabajador, nombre_completo, tipo_documento, fecha_registro FROM trabajadores WHERE inhabilitado = 0 ORDER BY fecha_registro DESC LIMIT 3"
 )->fetchAll(PDO::FETCH_ASSOC);
@@ -220,7 +229,7 @@ include 'includes/header.php';
             <div class="card-header bg-white py-3">
                 <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
                     <h5 class="mb-0 fw-bold text-success"><i class="bi bi-clock-history me-2"></i>Últimos registros</h5>
-                    <span class="badge bg-success bg-opacity-10 text-success py-2 px-3">Recientes</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary py-2 px-3">Recientes</span>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -240,6 +249,22 @@ include 'includes/header.php';
                         <div class="p-4 text-center text-muted">No hay registros recientes disponibles.</div>
                     <?php endif; ?>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+                    <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-bank me-2"></i>Embargos Judiciales por banco</h5>
+                    <span class="badge bg-danger bg-opacity-10 text-danger py-2 px-3">Top 8 instituciones</span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="judicialBankChart" height="260"></canvas>
             </div>
         </div>
     </div>
@@ -348,6 +373,84 @@ include 'includes/header.php';
                                 const value = context.raw || 0;
                                 return context.label + ': ' + value;
                             }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    const judicialBankLabels = [
+        <?php foreach ($judicial_por_banco as $item) {
+            echo '"' . htmlspecialchars($item['banco_institucion']) . '",';
+        } ?>
+    ];
+    const judicialBankData = [
+        <?php foreach ($judicial_por_banco as $item) {
+            echo (int)$item['total'] . ',';
+        } ?>
+    ];
+
+    const bankCtx = document.getElementById('judicialBankChart');
+    if (bankCtx && judicialBankData.length > 0) {
+        new Chart(bankCtx, {
+            type: 'bar',
+            data: {
+                labels: judicialBankLabels,
+                datasets: [{
+                    label: 'Embargos judiciales',
+                    data: judicialBankData,
+                    backgroundColor: [
+                        '#0d6efd',
+                        '#198754',
+                        '#dc3545',
+                        '#fd7e14',
+                        '#6f42c1',
+                        '#20c997',
+                        '#ffc107',
+                        '#6c757d'
+                    ],
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'x',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw || 0;
+                                return 'Embargos: ' + value;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: window.getComputedStyle(document.body).color,
+                            maxRotation: 45,
+                            minRotation: 0,
+                            autoSkip: false
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            color: window.getComputedStyle(document.body).color
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.08)'
                         }
                     }
                 }

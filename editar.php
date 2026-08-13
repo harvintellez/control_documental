@@ -3,6 +3,8 @@ include 'conexion.php';
 include 'seguridad.php';
 include 'includes/auditoria.php';
 
+$bancos_disponibles = $conexion->query("SELECT nombre FROM configuracion_bancos WHERE activo = 1 ORDER BY nombre ASC")->fetchAll(PDO::FETCH_COLUMN);
+
 // 1. Obtener el ID del trabajador desde la URL
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
@@ -22,10 +24,16 @@ if (isset($_GET['id'])) {
         $condicion_especial_1 = htmlspecialchars($row['condicion_especial_1'] ?? '');
         $condicion_especial_2 = htmlspecialchars($row['condicion_especial_2'] ?? '');
         $tipo = htmlspecialchars($row['tipo_documento']);
+        $banco_institucion_actual = htmlspecialchars($row['banco_institucion'] ?? '');
         $valor_inicial = htmlspecialchars($row['valor_inicial']);
         $valor_final = htmlspecialchars($row['valor_final']);
         $foto_actual = $row['foto_perfil'];
         $doc_actual = $row['archivo_adjunto'];
+
+        if (!empty($row['banco_institucion']) && !in_array($row['banco_institucion'], $bancos_disponibles, true)) {
+            $bancos_disponibles[] = $row['banco_institucion'];
+            sort($bancos_disponibles, SORT_STRING);
+        }
     } else {
         header("Location: consulta.php?msg=No+encontrado");
         exit();
@@ -39,6 +47,7 @@ if (isset($_POST['actualizar'])) {
     $cedula_nueva = trim($_POST['cedula']);
     $desc_nueva = trim($_POST['descripcion']);
     $tipo_nuevo = trim($_POST['tipo']);
+    $banco_institucion_nuevo = $tipo_nuevo === 'Embargo Judicial' ? trim($_POST['banco_institucion'] ?? '') : null;
     $valor_inicial_nuevo = !empty($_POST['valor_inicial']) ? floatval($_POST['valor_inicial']) : null;
     $valor_final_nuevo = !empty($_POST['valor_final']) ? floatval($_POST['valor_final']) : null;
 
@@ -97,6 +106,7 @@ if (isset($_POST['actualizar'])) {
         'cedula' => $cedula_nueva,
         'descripcion_oficio' => $desc_nueva,
         'tipo_documento' => $tipo_nuevo,
+        'banco_institucion' => $banco_institucion_nuevo,
         'valor_inicial' => $valor_inicial_nuevo,
         'valor_final' => $valor_final_nuevo,
         'foto_perfil' => $ruta_foto_bd,
@@ -108,7 +118,7 @@ if (isset($_POST['actualizar'])) {
         'usuario_registro' => $usuario_registro
     ];
 
-    $stmt_prev = $conexion->prepare("SELECT nombre_completo, cedula, descripcion_oficio, tipo_documento, valor_inicial, valor_final, foto_perfil, archivo_adjunto, fecha_especial_1, fecha_especial_2, condicion_especial_1, condicion_especial_2, usuario_registro FROM trabajadores WHERE id = :id");
+    $stmt_prev = $conexion->prepare("SELECT nombre_completo, cedula, descripcion_oficio, tipo_documento, banco_institucion, valor_inicial, valor_final, foto_perfil, archivo_adjunto, fecha_especial_1, fecha_especial_2, condicion_especial_1, condicion_especial_2, usuario_registro FROM trabajadores WHERE id = :id");
     $stmt_prev->bindParam(':id', $id, PDO::PARAM_INT);
     $stmt_prev->execute();
     $prev = $stmt_prev->fetch(PDO::FETCH_ASSOC);
@@ -118,6 +128,7 @@ if (isset($_POST['actualizar'])) {
         cedula = :cedula,
         descripcion_oficio = :descripcion,
         tipo_documento = :tipo,
+        banco_institucion = :banco_institucion,
         valor_inicial = :valor_inicial,
         valor_final = :valor_final,
         foto_perfil = :foto,
@@ -134,6 +145,7 @@ if (isset($_POST['actualizar'])) {
     $stmt_update->bindParam(':cedula', $cedula_nueva);
     $stmt_update->bindParam(':descripcion', $desc_nueva);
     $stmt_update->bindParam(':tipo', $tipo_nuevo);
+    $stmt_update->bindParam(':banco_institucion', $banco_institucion_nuevo);
     $stmt_update->bindParam(':valor_inicial', $valor_inicial_nuevo);
     $stmt_update->bindParam(':valor_final', $valor_final_nuevo);
     $stmt_update->bindParam(':foto', $ruta_foto_bd);
@@ -192,11 +204,36 @@ include 'includes/header.php';
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Tipo de Oficio</label>
-                            <select name="tipo" class="form-select">
+                            <select name="tipo" id="tipo" class="form-select">
                                 <option value="Embargo Judicial" <?php if($tipo == 'Embargo Judicial') echo 'selected'; ?>>Embargo Judicial</option>
                                 <option value="Pensión Alimenticia" <?php if($tipo == 'Pensión Alimenticia') echo 'selected'; ?>>Pensión Alimenticia</option>
                                 <option value="Otro" <?php if($tipo == 'Otro') echo 'selected'; ?>>Otro</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 <?php echo $tipo == 'Embargo Judicial' ? '' : 'd-none'; ?>" id="campo_banco_judicial">
+                        <label class="form-label fw-bold">Banco o institución financiera</label>
+                        <div class="alert alert-light border p-2 mb-2 small text-muted">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Si no aparece el banco requerido, puede gestionarlo desde la configuración del sistema.
+                        </div>
+                        <div class="input-group">
+                            <select name="banco_institucion" id="banco_institucion" class="form-select">
+                                <option value="">Seleccione un banco...</option>
+                                <?php foreach ($bancos_disponibles as $banco): ?>
+                                    <option value="<?= htmlspecialchars($banco) ?>" <?= htmlspecialchars($banco_institucion_actual) === htmlspecialchars($banco) ? 'selected' : '' ?>><?= htmlspecialchars($banco) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php if (($_SESSION['rol'] ?? '') === 'admin'): ?>
+                                <a href="mantenimiento.php#configuracion-bancos" class="btn btn-outline-primary" title="Abrir configuración de bancos">
+                                    <i class="bi bi-gear"></i>
+                                </a>
+                            <?php else: ?>
+                                <button type="button" class="btn btn-outline-secondary" title="Solo administradores pueden configurar bancos" disabled>
+                                    <i class="bi bi-gear"></i>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -279,5 +316,25 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tipo = document.getElementById('tipo');
+        const bloqueBanco = document.getElementById('campo_banco_judicial');
+        const bancoSelect = document.getElementById('banco_institucion');
+
+        function actualizarBancoJudicial() {
+            const mostrar = tipo.value === 'Embargo Judicial';
+            bloqueBanco.classList.toggle('d-none', !mostrar);
+            bancoSelect.required = mostrar;
+            if (!mostrar) {
+                bancoSelect.value = '';
+            }
+        }
+
+        tipo.addEventListener('change', actualizarBancoJudicial);
+        actualizarBancoJudicial();
+    });
+</script>
 
 <?php include 'includes/footer.php'; ?>

@@ -54,4 +54,9 @@ function registrar_auditoria(PDO $conexion, int $trabajador_id, string $accion, 
         ':detalles' => is_array($detalles) ? json_encode($detalles, JSON_UNESCAPED_UNICODE) : $detalles,
     ]);
 }
+
+function registrar_auditoria_configuracion(PDO $conexion, string $accion, $usuario = null, $campo = null, $valor_anterior = null, $valor_nuevo = null, $detalles = null): void
+{
+    registrar_auditoria($conexion, 0, $accion, $usuario, $campo, $valor_anterior, $valor_nuevo, $detalles);
+}
 ?>

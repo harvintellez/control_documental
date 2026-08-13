@@ -10,10 +10,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre      = trim($_POST['nombre']);
     $tipo        = trim($_POST['tipo_documento']);
     $descripcion = trim($_POST['descripcion']);
-    
+    $banco_institucion = $tipo === 'Embargo Judicial' ? trim($_POST['banco_institucion'] ?? '') : null;
+
     // Validar campos obligatorios
     if (empty($codigo) || empty($cedula) || empty($nombre)) {
         header("Location: registro.php?error=campos_vacios");
+        exit();
+    }
+
+    if ($tipo === 'Embargo Judicial' && $banco_institucion === '') {
+        header("Location: registro.php?error=banco_obligatorio");
         exit();
     }
 
@@ -92,8 +98,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 5. Insertar en la Base de Datos con PDO (Sentencia Preparada)
     try {
-        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final, usuario_registro, fecha_especial_1, fecha_especial_2, condicion_especial_1, condicion_especial_2) 
-                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final, :usuario_registro, :fecha_especial_1, :fecha_especial_2, :condicion_especial_1, :condicion_especial_2)";
+        $sql = "INSERT INTO trabajadores (codigo_trabajador, nombre_completo, cedula, foto_perfil, descripcion_oficio, archivo_adjunto, tipo_documento, valor_inicial, valor_final, usuario_registro, fecha_especial_1, fecha_especial_2, condicion_especial_1, condicion_especial_2, banco_institucion) 
+                VALUES (:codigo, :nombre, :cedula, :foto, :descripcion, :archivo, :tipo, :valor_inicial, :valor_final, :usuario_registro, :fecha_especial_1, :fecha_especial_2, :condicion_especial_1, :condicion_especial_2, :banco_institucion)";
         $stmt = $conexion->prepare($sql);
         
         $stmt->bindParam(':codigo',       $codigo);
@@ -105,6 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':tipo',         $tipo);
         $stmt->bindParam(':valor_inicial',$valor_inicial);
         $stmt->bindParam(':valor_final',  $valor_final);
+        $stmt->bindParam(':banco_institucion', $banco_institucion);
 
         // Registrar usuario que realizó la acción
         $usuario_registro = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
@@ -117,6 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->execute()) {
             $trabajador_id = (int)$conexion->lastInsertId();
             $usuario = $_SESSION['usuario_nombre'] ?? $_SESSION['usuario'] ?? $_SESSION['usuario_id'] ?? null;
+            registrar_auditoria($conexion, $trabajador_id, 'CREAR', $usuario, 'banco_institucion', null, $banco_institucion, 'Creación desde formulario');
             registrar_auditoria($conexion, $trabajador_id, 'CREAR', $usuario, null, null, 'Registro creado', 'Creación desde formulario');
             header("Location: consulta.php?res=ok");
             exit();

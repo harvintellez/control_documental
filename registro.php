@@ -1,5 +1,8 @@
 <?php 
 include 'seguridad.php'; // Solo usuarios logueados pueden registrar
+include 'conexion.php';
+
+$bancos = $conexion->query("SELECT nombre FROM configuracion_bancos WHERE activo = 1 ORDER BY nombre ASC")->fetchAll(PDO::FETCH_COLUMN);
 include 'includes/header.php';
 ?>
 
@@ -12,6 +15,7 @@ include 'includes/header.php';
             'doc_grande'         => '<i class="bi bi-file-earmark me-2"></i>El documento supera el límite de 15 MB permitido.',
             'tipo_foto_invalido' => '<i class="bi bi-shield-x me-2"></i>Tipo de archivo de foto no permitido. Solo se acepta JPG o PNG.',
             'tipo_doc_invalido'  => '<i class="bi bi-shield-x me-2"></i>Tipo de archivo de documento no permitido. Solo se acepta PDF, JPG o PNG.',
+            'banco_obligatorio'  => '<i class="bi bi-bank me-2"></i>Debe seleccionar un banco o institución financiera para el embargo judicial.',
             'db'                 => '<i class="bi bi-database-x me-2"></i>Ocurrió un error al guardar el registro. Intente de nuevo.',
         ];
         if (isset($_GET['error']) && array_key_exists($_GET['error'], $errores_mapa)):
@@ -60,7 +64,7 @@ include 'includes/header.php';
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Tipo de Documento</label>
-                            <select name="tipo_documento" class="form-select" required>
+                            <select name="tipo_documento" id="tipo_documento" class="form-select" required>
                                 <option value="" selected disabled>Seleccione una opción...</option>
                                 <option value="Embargo Judicial">Embargo Judicial</option>
                                 <option value="Pensión Alimenticia">Pensión Alimenticia</option>
@@ -70,6 +74,31 @@ include 'includes/header.php';
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Documento Original (PDF/Imagen)</label>
                             <input type="file" name="archivo_oficio" class="form-control" accept="application/pdf, image/jpeg, image/png" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 d-none" id="campo_banco_judicial">
+                        <label class="form-label fw-bold">Banco o institución financiera</label>
+                        <div class="alert alert-light border p-2 mb-2 small text-muted">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Si no aparece el banco requerido, puede gestionarlo desde la configuración del sistema.
+                        </div>
+                        <div class="input-group">
+                            <select name="banco_institucion" id="banco_institucion" class="form-select">
+                                <option value="">Seleccione un banco...</option>
+                                <?php foreach ($bancos as $banco): ?>
+                                    <option value="<?= htmlspecialchars($banco) ?>"><?= htmlspecialchars($banco) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php if (($_SESSION['rol'] ?? '') === 'admin'): ?>
+                                <a href="mantenimiento.php#configuracion-bancos" class="btn btn-outline-primary" title="Abrir configuración de bancos">
+                                    <i class="bi bi-gear"></i>
+                                </a>
+                            <?php else: ?>
+                                <button type="button" class="btn btn-outline-secondary" title="Solo administradores pueden configurar bancos" disabled>
+                                    <i class="bi bi-gear"></i>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -130,5 +159,25 @@ include 'includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tipoDocumento = document.getElementById('tipo_documento');
+        const bloqueBanco = document.getElementById('campo_banco_judicial');
+        const bancoSelect = document.getElementById('banco_institucion');
+
+        function actualizarBancoJudicial() {
+            const mostrar = tipoDocumento.value === 'Embargo Judicial';
+            bloqueBanco.classList.toggle('d-none', !mostrar);
+            bancoSelect.required = mostrar;
+            if (!mostrar) {
+                bancoSelect.value = '';
+            }
+        }
+
+        tipoDocumento.addEventListener('change', actualizarBancoJudicial);
+        actualizarBancoJudicial();
+    });
+</script>
 
 <?php include 'includes/footer.php'; ?>

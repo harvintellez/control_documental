@@ -9,17 +9,36 @@ $porPagina = 15;
 $paginaActual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
 $offset = ($paginaActual - 1) * $porPagina;
 $busqueda = trim($_GET['busqueda'] ?? '');
-$whereSql = '';
+$bancoFiltro = trim($_GET['banco_filtro'] ?? '');
+$tipoFiltro = trim($_GET['tipo_filtro'] ?? '');
+$bancosDisponibles = $conexion->query("SELECT nombre FROM configuracion_bancos WHERE activo = 1 ORDER BY nombre ASC")->fetchAll(PDO::FETCH_COLUMN);
+
+$whereSql = 'WHERE 1=1';
+$binds = [];
+
 if ($busqueda !== '') {
-    $whereSql = "WHERE t.codigo_trabajador LIKE :busqueda1 OR t.nombre_completo LIKE :busqueda2 OR t.cedula LIKE :busqueda3";
+    $whereSql .= " AND (t.codigo_trabajador LIKE :busqueda1 OR t.nombre_completo LIKE :busqueda2 OR t.cedula LIKE :busqueda3 OR t.banco_institucion LIKE :busqueda4 OR t.tipo_documento LIKE :busqueda5)";
+    $binds[':busqueda1'] = '%' . $busqueda . '%';
+    $binds[':busqueda2'] = '%' . $busqueda . '%';
+    $binds[':busqueda3'] = '%' . $busqueda . '%';
+    $binds[':busqueda4'] = '%' . $busqueda . '%';
+    $binds[':busqueda5'] = '%' . $busqueda . '%';
+}
+
+if ($bancoFiltro !== '') {
+    $whereSql .= " AND t.banco_institucion = :banco_filtro";
+    $binds[':banco_filtro'] = $bancoFiltro;
+}
+
+if ($tipoFiltro !== '') {
+    $whereSql .= " AND t.tipo_documento = :tipo_filtro";
+    $binds[':tipo_filtro'] = $tipoFiltro;
 }
 
 $sqlCount = "SELECT COUNT(*) as total FROM trabajadores t $whereSql";
 $totalResult = $conexion->prepare($sqlCount);
-if ($busqueda !== '') {
-    $totalResult->bindValue(':busqueda1', '%' . $busqueda . '%', PDO::PARAM_STR);
-    $totalResult->bindValue(':busqueda2', '%' . $busqueda . '%', PDO::PARAM_STR);
-    $totalResult->bindValue(':busqueda3', '%' . $busqueda . '%', PDO::PARAM_STR);
+foreach ($binds as $key => $value) {
+    $totalResult->bindValue($key, $value, PDO::PARAM_STR);
 }
 $totalResult->execute();
 $totalRow = $totalResult->fetch(PDO::FETCH_ASSOC);
@@ -33,16 +52,19 @@ $sql = "SELECT t.*, COALESCE(u.usuario, t.usuario_registro) AS usuario_registro_
        "ORDER BY t.inhabilitado ASC, t.nombre_completo ASC " .
        "LIMIT :limit OFFSET :offset";
 $resultado = $conexion->prepare($sql);
-if ($busqueda !== '') {
-    $resultado->bindValue(':busqueda1', '%' . $busqueda . '%', PDO::PARAM_STR);
-    $resultado->bindValue(':busqueda2', '%' . $busqueda . '%', PDO::PARAM_STR);
-    $resultado->bindValue(':busqueda3', '%' . $busqueda . '%', PDO::PARAM_STR);
+foreach ($binds as $key => $value) {
+    $resultado->bindValue($key, $value, PDO::PARAM_STR);
 }
 $resultado->bindValue(':limit', $porPagina, PDO::PARAM_INT);
 $resultado->bindValue(':offset', $offset, PDO::PARAM_INT);
 $resultado->execute();
 
-$queryParams = $busqueda !== '' ? 'busqueda=' . urlencode($busqueda) . '&' : '';
+$queryParams = [];
+if ($busqueda !== '') $queryParams[] = 'busqueda=' . urlencode($busqueda);
+if ($bancoFiltro !== '') $queryParams[] = 'banco_filtro=' . urlencode($bancoFiltro);
+if ($tipoFiltro !== '') $queryParams[] = 'tipo_filtro=' . urlencode($tipoFiltro);
+$queryParams = implode('&', $queryParams);
+$queryParams = $queryParams !== '' ? $queryParams . '&' : '';
 
 include 'includes/header.php';
 ?>
@@ -112,9 +134,21 @@ include 'includes/header.php';
                         <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-list-check me-2"></i>Listado de Embargos</h5>
                     </div>
                     <div class="col-md-5">
-                        <form id="busquedaForm" method="get" action="consulta.php" class="input-group">
+                        <form id="busquedaForm" method="get" action="consulta.php" class="input-group flex-wrap">
                             <span class="input-group-text bg-primary text-white border-primary"><i class="bi bi-search"></i></span>
-                            <input type="text" name="busqueda" id="inputBusqueda" class="form-control border-primary" placeholder="Filtrar por nombre, cédula o código..." value="<?php echo htmlspecialchars($busqueda); ?>">
+                            <input type="text" name="busqueda" id="inputBusqueda" class="form-control border-primary" placeholder="Nombre, cédula o código..." value="<?php echo htmlspecialchars($busqueda); ?>">
+                            <select name="tipo_filtro" class="form-select border-primary" style="max-width: 200px;">
+                                <option value="">Todos los tipos</option>
+                                <option value="Embargo Judicial" <?= $tipoFiltro === 'Embargo Judicial' ? 'selected' : '' ?>>Embargo Judicial</option>
+                                <option value="Pensión Alimenticia" <?= $tipoFiltro === 'Pensión Alimenticia' ? 'selected' : '' ?>>Pensión Alimenticia</option>
+                                <option value="Otro" <?= $tipoFiltro === 'Otro' ? 'selected' : '' ?>>Otro</option>
+                            </select>
+                            <select name="banco_filtro" class="form-select border-primary" style="max-width: 220px;">
+                                <option value="">Todos los bancos</option>
+                                <?php foreach ($bancosDisponibles as $banco): ?>
+                                    <option value="<?= htmlspecialchars($banco) ?>" <?= $bancoFiltro === $banco ? 'selected' : '' ?>><?= htmlspecialchars($banco) ?></option>
+                                <?php endforeach; ?>
+                            </select>
                             <button class="btn btn-outline-secondary" type="button" id="btnLimpiar"><i class="bi bi-x-lg"></i></button>
                             <button class="btn btn-primary" type="submit" title="Buscar"><i class="bi bi-search"></i></button>
                         </form>
@@ -140,6 +174,7 @@ include 'includes/header.php';
                                 <th>Nombre Completo</th>
                                 <th>Cédula</th>
                                 <th>Tipo Oficio</th>
+                                <th>Banco</th>
                                 <th class="text-center">Estado</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
@@ -157,6 +192,7 @@ include 'includes/header.php';
                                 data-descripcion="<?php echo htmlspecialchars($row['descripcion_oficio'] ?? ''); ?>"
                                 data-archivo="<?php echo htmlspecialchars($row['archivo_adjunto'] ?? ''); ?>"
                                 data-tipo="<?php echo htmlspecialchars($row['tipo_documento'] ?? ''); ?>"
+                                data-banco="<?php echo htmlspecialchars($row['banco_institucion'] ?? ''); ?>"
                                 data-fecha-registro="<?php echo htmlspecialchars($row['fecha_registro'] ?? ''); ?>"
                                 data-valor-inicial="<?php echo htmlspecialchars($row['valor_inicial'] ?? ''); ?>"
                                 data-valor-final="<?php echo htmlspecialchars($row['valor_final'] ?? ''); ?>"
@@ -187,6 +223,13 @@ ondblclick="abrirModalTrabajadorConsulta(this)"
                                 </td>
                                 <td><?php echo htmlspecialchars($row['cedula']); ?></td>
                                 <td><small class="text-muted"><?php echo htmlspecialchars($row['tipo_documento']); ?></small></td>
+                                <td>
+                                    <?php if (!empty($row['banco_institucion'])): ?>
+                                        <span class="badge bg-light text-dark border"><?php echo htmlspecialchars($row['banco_institucion']); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted small">—</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-center">
                                     <?php if ($inh): ?>
                                         <span class="badge bg-danger"><i class="bi bi-slash-circle me-1"></i>Inhabilitado</span>
@@ -255,7 +298,7 @@ ondblclick="abrirModalTrabajadorConsulta(this)"
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">No se encontraron registros en la base de datos.</td>
+                                <td colspan="8" class="text-center py-4 text-muted">No se encontraron registros en la base de datos.</td>
                             </tr>
                         <?php endif; ?>
                         </tbody>
@@ -373,6 +416,9 @@ ondblclick="abrirModalTrabajadorConsulta(this)"
                     <dt class="col-sm-4">Tipo Documento:</dt>
                     <dd class="col-sm-8" id="tipoModal">—</dd>
 
+                    <dt class="col-sm-4">Banco / Institución:</dt>
+                    <dd class="col-sm-8" id="bancoModal">—</dd>
+
                     <dt class="col-sm-4">Fecha Registro:</dt>
                     <dd class="col-sm-8" id="fechaRegistroModal">—</dd>
 
@@ -429,6 +475,8 @@ ondblclick="abrirModalTrabajadorConsulta(this)"
 
 <script>
 const inputBusqueda = document.getElementById('inputBusqueda');
+const bancoFiltro = document.querySelector('select[name="banco_filtro"]');
+const tipoFiltro = document.querySelector('select[name="tipo_filtro"]');
 const btnLimpiar    = document.getElementById('btnLimpiar');
 const switchInh     = document.getElementById('mostrarInhabilitados');
 const allFilas      = document.querySelectorAll('#tablaTrabajadores tbody tr[data-inhabilitado]');
@@ -442,6 +490,7 @@ function abrirModalTrabajador(fila) {
     document.getElementById('nombreModal').textContent = fila.dataset.nombre || '—';
     document.getElementById('cedulaModal').textContent = fila.dataset.cedula || '—';
     document.getElementById('tipoModal').textContent = fila.dataset.tipo || '—';
+    document.getElementById('bancoModal').textContent = fila.dataset.banco || '—';
     document.getElementById('fechaRegistroModal').textContent = fila.dataset.fechaRegistro ? new Date(fila.dataset.fechaRegistro).toLocaleString('es-NI') : '—';
     document.getElementById('usuarioRegistroModal').textContent = fila.dataset.usuarioRegistro || fila.dataset.usuarioRegistro || '—';
     document.getElementById('nombreAdjuntoModal').textContent = fila.dataset.nombreAdjunto || '—';
@@ -509,7 +558,13 @@ function aplicarFiltros() {
 
 inputBusqueda.addEventListener('keyup', aplicarFiltros);
 switchInh.addEventListener('change', aplicarFiltros);
-btnLimpiar.addEventListener('click', () => { inputBusqueda.value = ''; aplicarFiltros(); inputBusqueda.focus(); });
+btnLimpiar.addEventListener('click', () => {
+    inputBusqueda.value = '';
+    if (bancoFiltro) bancoFiltro.value = '';
+    if (tipoFiltro) tipoFiltro.value = '';
+    aplicarFiltros();
+    inputBusqueda.focus();
+});
 aplicarFiltros(); // Ocultar inhabilitados al cargar
 
 // Modal inhabilitar
